@@ -1,0 +1,9 @@
+*.pyc
+*.dblite
+hello_boost
+*.o
+.vscode/bookmarks.json
+gfx_testbed.exe
+gfx_testbed.ilk
+vc140.pdb
+gfx_testbed.pdb
