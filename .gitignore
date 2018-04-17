@@ -1,7 +1,7 @@
 *.pyc
 *.dblite
 hello_boost
-*.o
+*.obj
 .vscode/bookmarks.json
 gfx_testbed.exe
 gfx_testbed.ilk
