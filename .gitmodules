@@ -1,3 +1,6 @@
 [submodule "stb"]
 	path = stb
 	url = https://github.com/nothings/stb.git
+[submodule "sce_vectormath"]
+	path = sce_vectormath
+	url = https://github.com/erwincoumans/sce_vectormath.git
