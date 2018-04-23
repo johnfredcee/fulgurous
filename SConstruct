@@ -21,5 +21,5 @@ optfile = "options_"+platform.system().lower()+".py"
 print("Looking for options in " + optfile)
 vars = Variables(optfile)
 env = xscons.make_root_env(vars);
-env.Append(CPPPATH = [ "nanvg/src" ])
+env.Append(CPPPATH = [ "./nanovg/src", "./stb" ])
 env.Program("gfx_testbed", [ "src/glfw_window.cpp", "glad/src/glad.c", "nanovg/src/nanovg.c" ])

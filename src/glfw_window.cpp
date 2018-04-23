@@ -18,6 +18,11 @@
 
 // GLFW
 #include <GLFW/glfw3.h>
+#include "nanovg.h"
+#define NANOVG_GL3_IMPLEMENTATION
+#include "nanovg_gl.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 
 void errorcb(int error, const char* desc)
@@ -42,6 +47,8 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 
 void drawWindow(NVGcontext* vg, const char* title, float x, float y, float w, float h)
 {
+   	float cornerRadius = 3.0f;
+
     nvgSave(vg);
     //	
 
@@ -92,6 +99,12 @@ int main()
 
 	vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 
+	int fontBold = nvgCreateFont(vg, "sans-bold", "./nanovg/example//Roboto-Bold.ttf");
+	if (fontBold == -1) {
+		std::cerr << "Could not add font bold.\n" << std::endl;
+		return -1;
+	}
+
     // Set the required callback functions
     glfwSetKeyCallback(window, key_callback);
 
@@ -100,6 +113,8 @@ int main()
         std::cout << "Failed to initialize OpenGL context" << std::endl;
         return -1;
     }
+
+	glfwSwapInterval(0);
 
     // Define the viewport dimensions
     glViewport(0, 0, WIDTH, HEIGHT);
