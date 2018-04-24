@@ -97,14 +97,6 @@ int main()
         return -1;
     }
 
-	vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-
-	int fontBold = nvgCreateFont(vg, "sans-bold", "./nanovg/example//Roboto-Bold.ttf");
-	if (fontBold == -1) {
-		std::cerr << "Could not add font bold.\n" << std::endl;
-		return -1;
-	}
-
     // Set the required callback functions
     glfwSetKeyCallback(window, key_callback);
 
@@ -113,6 +105,14 @@ int main()
         std::cout << "Failed to initialize OpenGL context" << std::endl;
         return -1;
     }
+
+	vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+
+	int fontBold = nvgCreateFont(vg, "sans-bold", "./nanovg/example//Roboto-Bold.ttf");
+	if (fontBold == -1) {
+		std::cerr << "Could not add font bold.\n" << std::endl;
+		return -1;
+	}
 
 	glfwSwapInterval(0);
 
