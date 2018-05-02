@@ -62,8 +62,8 @@ void drawWindow(NVGcontext* vg, const char* title, float x, float y, float w, fl
 	nvgFontFace(vg, "sans-bold");
 	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
 
-	nvgFontBlur(vg,2);
-	nvgFillColor(vg, nvgRGBA(0,0,0,128));
+	nvgFontBlur(vg,0.0f);
+	nvgFillColor(vg, nvgRGBA(192,192,192,128));
 	nvgText(vg, x+w/2,y+16+1, title, NULL);
 
 	nvgRestore(vg);

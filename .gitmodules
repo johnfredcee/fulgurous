@@ -7,3 +7,6 @@
 [submodule "nanovg"]
 	path = nanovg
 	url = https://github.com/memononen/nanovg.git
+[submodule "oui-blendish"]
+	path = oui-blendish
+	url = https://github.com/AndrewBelt/oui-blendish.git
