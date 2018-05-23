@@ -10,3 +10,6 @@
 [submodule "oui-blendish"]
 	path = oui-blendish
 	url = https://github.com/AndrewBelt/oui-blendish.git
+[submodule "filesystem"]
+	path = filesystem
+	url = https://github.com/wjakob/filesystem.git
