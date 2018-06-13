@@ -1,6 +1,5 @@
 #include <iostream>
 #include <memory>
-
 // THIS IS OPTIONAL AND NOT REQUIRED, ONLY USE THIS IF YOU DON'T WANT GLAD TO INCLUDE windows.h
 // GLAD will include windows.h for APIENTRY if it was not previously defined.
 // Make sure you have the correct definition for APIENTRY for platforms which define _WIN32 but don't use __stdcall
@@ -28,6 +27,12 @@
 
 using namespace Vectormath;
 using namespace Vectormath::Aos;
+
+
+#include "filesystem/path.h"
+#include "filesystem/resolver.h"
+
+#include "shader.h"
 
 void errorcb(int error, const char* desc)
 {
@@ -97,8 +102,8 @@ int main()
 	glfwSetErrorCallback(errorcb);
     
     // Set all the required options for GLFW
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -131,6 +136,24 @@ int main()
 
 	glfwSwapInterval(0);
 
+    std::shared_ptr<ShaderProgram> ShaderProgram(new ShaderProgram());
+    ShaderProgram->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
+    ShaderProgram->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
+    ShaderProgram->compile(ShaderKind::eVERTEX_SHADER);
+    ShaderProgram->compile(ShaderKind::eFRAGMENT_SHADER);
+    ShaderProgram->link();
+    ShaderProgram->use();
+
+    for(auto&& uniform : ShaderProgram->uniforms)
+    {
+        std::cout << "Uniform " << uniform.location << " : " << uniform.name << std::endl;
+    }
+  
+    for(auto&& attribute : ShaderProgram->attributes)
+    {
+        std::cout << "Attribute " << attribute.location << " : " << attribute.name << std::endl;
+    }
+  
     GLuint vertShader = glCreateShader( GL_VERTEX_SHADER );
     if( 0 == vertShader )
     {

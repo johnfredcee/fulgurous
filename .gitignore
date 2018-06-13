@@ -1,9 +1,11 @@
 *.pyc
 *.dblite
-hello_boost
 *.obj
+*.ilk
+hello_boost
 .vscode/bookmarks.json
 gfx_testbed.exe
 gfx_testbed.ilk
 vc140.pdb
 gfx_testbed.pdb
+ 
