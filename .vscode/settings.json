@@ -1,0 +1,14 @@
+{
+    "python.pythonPath": "D:\\Apps\\Python35\\python.exe",
+    "files.associations": {
+        "xlocale": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp"
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/*.obj" : true,
+        "**/*.ilk" : true,
+        "**/*.pdb" : true
+    }
+}
