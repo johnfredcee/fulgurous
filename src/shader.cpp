@@ -1,5 +1,6 @@
 
 #include <glad/glad.h>
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -123,6 +124,18 @@ void ShaderProgram::gather_uniforms()
         uniform.name = std::string(uniform_name);
         uniforms.push_back(uniform);
     }       
+}
+
+GLint ShaderProgram::attribute_location(std::string name)
+{
+    auto result = std::find_if(std::begin(attributes), std::end(attributes), [name](const ShaderParameter& param) { return param.name == name; });
+    return result != std::end(attributes) ? result->location : -1;
+}
+
+GLint ShaderProgram::uniform_location(std::string name)
+{
+    auto result = std::find_if(std::begin(uniforms), std::end(uniforms), [name](const ShaderParameter& param) { return param.name == name; });
+    return result != std::end(uniforms) ? result->location : -1;
 }
 
 void ShaderProgram::link()

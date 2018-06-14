@@ -51,8 +51,16 @@ void errorcb(int error, const char* desc)
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
+void fb_size_callback(GLFWwindow* window, int width, int height);
+
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
+
+struct ColouredVertex
+{
+    Point3  position;
+    Vector4 colour;
+};
 
 void drawWindow(NVGcontext* vg, const char* title, float x, float y, float w, float h)
 {
@@ -88,7 +96,14 @@ std::shared_ptr<float[]> glMat4(const Matrix4& mat4)
     storeXYZW(mat4.getCol3(), &result_ptr[12]);
     return result;
 }
-    
+
+ColouredVertex vertices[3];
+GLshort indices[3];
+GLuint vaoID;
+GLuint vboVerticesID;
+GLuint vboIndicesID;
+Matrix4 proj = Matrix4::identity();
+
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
@@ -119,7 +134,7 @@ int main()
 
     // Set the required callback functions
     glfwSetKeyCallback(window, key_callback);
-
+    glfwSetFramebufferSizeCallback(window, fb_size_callback);
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
         std::cout << "Failed to initialize OpenGL context" << std::endl;
@@ -136,43 +151,68 @@ int main()
 
 	glfwSwapInterval(0);
 
-    std::shared_ptr<ShaderProgram> ShaderProgram(new ShaderProgram());
-    ShaderProgram->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
-    ShaderProgram->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
-    ShaderProgram->compile(ShaderKind::eVERTEX_SHADER);
-    ShaderProgram->compile(ShaderKind::eFRAGMENT_SHADER);
-    ShaderProgram->link();
-    ShaderProgram->use();
+    std::shared_ptr<ShaderProgram> program(new ShaderProgram());
+    program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
+    program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
+    program->compile(ShaderKind::eVERTEX_SHADER);
+    program->compile(ShaderKind::eFRAGMENT_SHADER);
+    program->link();
+    program->use();
 
-    for(auto&& uniform : ShaderProgram->uniforms)
+    for(auto&& uniform : program->uniforms)
     {
         std::cout << "Uniform " << uniform.location << " : " << uniform.name << std::endl;
     }
   
-    for(auto&& attribute : ShaderProgram->attributes)
+    for(auto&& attribute : program->attributes)
     {
         std::cout << "Attribute " << attribute.location << " : " << attribute.name << std::endl;
     }
-  
-    GLuint vertShader = glCreateShader( GL_VERTEX_SHADER );
-    if( 0 == vertShader )
-    {
-        std::cerr << "Error creating vertex shader." << std::endl;
-    }
+    program->unuse();
 
+    vertices[0].colour = Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+    vertices[1].colour = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+    vertices[2].colour = Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+
+    vertices[0].position = Point3(-1.0f, -1.0f, 0.0f);
+    vertices[1].position = Point3( 0.0f,  1.0f, 0.0f);
+    vertices[2].position = Point3( 1.0f, -1.0f, 0.0f);
+
+    indices[0] = 0;
+    indices[1] = 1;
+    indices[2] = 2;
+
+    GLsizei stride = sizeof(ColouredVertex);
+    glGenVertexArrays(1, &vaoID);
+    glGenBuffers(1, &vboVerticesID);
+    glGenBuffers(1, &vboIndicesID);
+    glBindVertexArray(vaoID);
+    glBindBuffer (GL_ARRAY_BUFFER, vboVerticesID);
+    glBufferData (GL_ARRAY_BUFFER, sizeof(vertices), &vertices[0],  GL_STATIC_DRAW);
+    GLint location = program->attribute_location("vVertex");
+    glEnableVertexAttribArray(location);
+    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE,stride,0);
+    location = program->attribute_location("vColor");
+    glEnableVertexAttribArray(location);
+    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE,stride, (const GLvoid*)offsetof(ColouredVertex, colour));
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
+    
     // Define the viewport dimensions
-    glViewport(0, 0, WIDTH, HEIGHT);
+    // glViewport(0, 0, WIDTH, HEIGHT);
 
-    Point3 position{ 1.0f, 1.0f, - 1.0f };
-    Point3 eye_pos{0.0f, 0.0f, 5.0f};
-    Point3 lookat_pos{0.0f, 0.0f, 0.0f};
-    Vector3 up{0.0f, 0.0f, 1.0f};
-    Matrix4 view(Matrix4::lookAt(eye_pos, lookat_pos, up));
-    Matrix4 model = Matrix4::identity();
-    model *= Matrix4::rotation(3.145f / 2.0f, up);
-    Matrix4 model_view = view * model;
-    Vector4 transformed = model_view * position;
-    std::shared_ptr<float[]> mvp = glMat4(model_view);
+    // Point3 position{ 1.0f, 1.0f, - 1.0f };
+    // Point3 eye_pos{0.0f, 0.0f, 5.0f};
+    // Point3 lookat_pos{0.0f, 0.0f, 0.0f};
+    // Vector3 up{0.0f, 0.0f, 1.0f};
+    // Matrix4 view(Matrix4::lookAt(eye_pos, lookat_pos, up));
+    // Matrix4 model = Matrix4::identity();
+    // model *= Matrix4::rotation(3.145f / 2.0f, up);
+    // Matrix4 model_view = view * model;
+    Matrix4 model_view = Matrix4::identity();
+    // Vector4 transformed = model_view * position;
+    // std::shared_ptr<float[]> mvp = glMat4(model_view);
 
     
     // Game loop
@@ -200,12 +240,19 @@ int main()
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 
-		nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
+		// nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
-    	drawWindow(vg, "Widgets `n Stuff", 50, 50, 300, 400);
+    	// drawWindow(vg, "Widgets `n Stuff", 50, 50, 300, 400);
     
-    	nvgEndFrame(vg);
+    	// nvgEndFrame(vg);
 
+        program->use();
+        location = program->uniform_location("MVP");
+        Matrix4 modelview_projection = proj * model_view;
+        std::shared_ptr<float[]> mvp = glMat4(modelview_projection);
+        glUniformMatrix4fv(location, 1, GL_FALSE, mvp.get());
+        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0);
+        program->unuse();
         // Swap the screen buffers
         glfwSwapBuffers(window);
     }
@@ -223,4 +270,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     std::cout << key << std::endl;
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
+}
+
+void fb_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+    proj = Matrix4::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f);
 }

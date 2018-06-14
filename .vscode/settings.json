@@ -3,7 +3,8 @@
     "files.associations": {
         "xlocale": "cpp",
         "xstring": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "iostream": "cpp"
     },
     "files.exclude": {
         "**/.git": true,
