@@ -30,8 +30,8 @@ public:
 
     void link();
 
-    GLint attribute_location(std::string name);
-    GLint uniform_location(std::string name);
+    GLint attribute_location(const std::string& name);
+    GLint uniform_location(const std::string& name);
     
     std::vector<ShaderParameter> uniforms;
     std::vector<ShaderParameter> attributes;
