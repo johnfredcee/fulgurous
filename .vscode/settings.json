@@ -4,7 +4,10 @@
         "xlocale": "cpp",
         "xstring": "cpp",
         "xutility": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "xiosbase": "cpp",
+        "memory": "cpp",
+        "xmemory0": "cpp"
     },
     "files.exclude": {
         "**/.git": true,
