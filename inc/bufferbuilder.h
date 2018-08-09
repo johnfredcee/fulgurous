@@ -44,6 +44,36 @@ public:
 		mBsuffer.push_back(vec);
 	}
 
+	template<typename... Args>
+	void add(Args&&... args)
+	{
+		mBuffer.emplace_backs(std::forward<Args>(args)...);
+	}
+
+	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,3>>::value, element_type  >::type >
+	void add(Point3 point)
+	{
+		GLfloat v3[3];
+		storeXYZ(point, &v3);
+		mBuffer.push_back(v3);
+	}
+
+	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,3>>::value, element_type  >::type >
+	void add(V vec)
+	{
+		GLfloat v3[3];
+		storeXYZ(vec, &v3);
+		mBuffer.push_back(v3);
+	}
+
+	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,4>>::value, element_type  >::type >
+	void add(V& vec)
+	{
+		GLfloat v3[4];
+		storeXYZW(vec, &v4);
+		mBuffer.push_back(v4);
+	}
+
     const void* BufferBuilder::getData()
     {
         return (const void*)&mBuffer[0];

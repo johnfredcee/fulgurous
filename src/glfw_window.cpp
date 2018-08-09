@@ -4,6 +4,7 @@
 #include <tuple>
 #include <type_traits>
 #include <initializer_list>
+#include <utility>
 
 // THIS IS OPTIONAL AND NOT REQUIRED, ONLY USE THIS IF YOU DON'T WANT GLAD TO INCLUDE windows.h
 // GLAD will include windows.h for APIENTRY if it was not previously defined.
