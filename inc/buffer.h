@@ -112,10 +112,10 @@ public:
 };
 
 template<typename T>
-std::shared_ptr< Buffer<T> > make_buffer(GLenum		target,
-                                           const void  *bufferData,
-                                           GLsizei		count,
-                                           GLenum		usage)
+std::shared_ptr< Buffer<typename T> > produce_buffer(GLenum		target,
+                                 		          const void  *bufferData,
+                                        		  GLsizei		count,
+                                           		  GLenum		usage)
 {
 	return std::make_shared<Buffer<T>>(target, bufferData, count, usage);
 }

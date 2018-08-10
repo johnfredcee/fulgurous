@@ -100,9 +100,9 @@ public:
 		return std::tuple<GLenum, GLsizei>{ mType, mComponentCount };
 	}
 
-	std::shared_ptr< Buffer<element_type> > make_buffer(GLenum target, GLenum = GL_STATIC_DRAW)
+	std::shared_ptr< Buffer<T> > make_buffer(GLenum target, GLenum usage = GL_STATIC_DRAW)
 	{
-		return make_buffer<element_type>(target, getData(), mBuffer.size(),  usage);
+		return ::produce_buffer<T>(target, getData(), (GLsizei) mBuffer.size(), usage);
 	}
 
 	void update_buffer(std::shared_ptr< Buffer<element_type> > buffer)

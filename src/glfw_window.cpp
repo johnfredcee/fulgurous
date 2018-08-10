@@ -183,9 +183,12 @@ int main()
         }
         program->unuse();
 
-        BufferBuilder<Vec<GLfloat, 4>> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
-        BufferBuilder<Vec<GLfloat, 3>> positions = {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
-        BufferBuilder<Vec<GLushort, 1>> indices = {{0}, {1}, {2}};
+        using Vec4 = Vec<GLfloat,4>;
+        using Vec3 = Vec<GLfloat,3>;
+
+        BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
+        BufferBuilder<Vec3> positions = {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
+        BufferBuilder<Vec<GLushort,1>> indices = {{0}, {1}, {2}};
 
         GLsizei stride = sizeof(ColouredVertex);
         gl_exec(glGenVertexArrays, 1, &vaoID);
@@ -196,7 +199,10 @@ int main()
 #endif
         gl_exec(glBindVertexArray, vaoID);
 
-        std::shared_ptr<Buffer<Vec<GLfloat, 3>>> glbVertices = make_buffer<Vec<GLfloat, 3>>(GL_ARRAY_BUFFER, positions.getData(), positions.elementCount(), GL_STATIC_DRAW);
+        std::shared_ptr<Buffer<Vec3>> glbVertices = positions.make_buffer(GL_ARRAY_BUFFER,GL_STATIC_DRAW);
+        //produce_buffer<Vec<GLfloat, 3>>(GL_ARRAY_BUFFER, positions.getData(), positions.elementCount(), GL_STATIC_DRAW);
+
+        // positions.make_buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
         // gl_exec(glBindBuffer, GL_ARRAY_BUFFER, vboVerticesID);
         // gl_exec(glBufferData, GL_ARRAY_BUFFER, positions.byteSize(), positions.getData(), GL_STATIC_DRAW);
         glbVertices->bindAttribute(program, "vVertex");
@@ -205,7 +211,8 @@ int main()
         // gl_exec(glEnableVertexAttribArray, location);
         // gl_exec(glVertexAttribPointer, location, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-        std::shared_ptr<Buffer<Vec<GLfloat, 4>>> glbColors = make_buffer<Vec<GLfloat, 4>>(GL_ARRAY_BUFFER, colors.getData(), colors.elementCount(), GL_STATIC_DRAW);
+        std::shared_ptr<Buffer<Vec4>> glbColors = colors.make_buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
+        //smake_buffer<Vec<GLfloat, 4>>(GL_ARRAY_BUFFER, colors.getData(), colors.elementCount(), GL_STATIC_DRAW);
         // gl_exec(glBindBuffer, GL_ARRAY_BUFFER, vboColorsID);
         // gl_exec(glBufferData, GL_ARRAY_BUFFER, colors.byteSize(), colors.getData(), GL_STATIC_DRAW);
         // GLint location = program->attribute_location("vColor");
@@ -214,7 +221,8 @@ int main()
         // gl_exec(glEnableVertexAttribArray, location);
         // gl_exec(glVertexAttribPointer, location, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
 
-        std::shared_ptr<Buffer<Vec<GLushort, 1>>> glbIndices = make_buffer<Vec<GLushort, 1>>(GL_ELEMENT_ARRAY_BUFFER, indices.getData(), indices.elementCount(), GL_STATIC_DRAW);
+        std::shared_ptr<Buffer<Vec<GLushort,1>>> glbIndices = indices.make_buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+        //produce_buffer<Vec<GLushort, 1>>(GL_ELEMENT_ARRAY_BUFFER, indices.getData(), indices.elementCount(), GL_STATIC_DRAW);
         //glbIndices->bindIndices();
 
         // gl_exec(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
