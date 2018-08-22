@@ -43,6 +43,7 @@ using namespace Vectormath::Aos;
 #include "vec.h"
 #include "buffer.h"
 #include "bufferbuilder.h"
+#include "arraybuilder.h"
 
 void errorcb(int error, const char *desc)
 {
@@ -108,6 +109,7 @@ std::shared_ptr<float[]> glMat4(const Matrix4 &mat4)
 ColouredVertex vertices[3];
 GLshort indices[3];
 GLuint vaoID;
+GLuint vaoBuildID;
 GLuint vboVerticesID;
 GLuint vboColorsID;
 GLuint vboIndicesID;
@@ -186,9 +188,15 @@ int main()
         using Vec4 = Vec<GLfloat,4>;
         using Vec3 = Vec<GLfloat,3>;
 
-        BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
         BufferBuilder<Vec3> positions = {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
+        BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
         BufferBuilder<Vec<GLushort,1>> indices = {{0}, {1}, {2}};
+
+        arrayBuilder(vaoBuildID,
+                    BufferInitialiser<Vec3>{positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+                    BufferInitialiser<Vec4>{colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+                    BufferInitialiser<Vec<GLushort,1>>{indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
+
 
         GLsizei stride = sizeof(ColouredVertex);
         gl_exec(glGenVertexArrays, 1, &vaoID);
