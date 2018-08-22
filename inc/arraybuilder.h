@@ -30,7 +30,6 @@ auto arrayBuilder(GLuint& vaoID, Ts... ts)
     gl_exec(glGenVertexArrays, 1, &vaoID);
     gl_exec(glBindVertexArray, vaoID);
 
-    std::initializer_list<int> dummy{(BuildVAOBuffer(ts),0)...};
     auto t = std::make_tuple(BuildVAOBuffer(ts)...);
     gl_exec(glBindVertexArray, 0);
     return t;
