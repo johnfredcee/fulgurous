@@ -193,18 +193,19 @@ int main()
         BufferBuilder<Vec<GLushort,1>> indices = {{0}, {1}, {2}};
 
         arrayBuilder(vaoBuildID,
-                    BufferInitialiser<Vec3>{positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-                    BufferInitialiser<Vec4>{colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-                    BufferInitialiser<Vec<GLushort,1>>{indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
+                    program,
+                    BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+                    BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+                    BufferInitialiser<Vec<GLushort,1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
 
 
+#if 0
         GLsizei stride = sizeof(ColouredVertex);
         gl_exec(glGenVertexArrays, 1, &vaoID);
-#if 0    
+    
     gl_exec(glGenBuffers, 1, &vboVerticesID);
     gl_exec(glGenBuffers, 1, &vboColorsID);
     gl_exec(glGenBuffers, 1, &vboIndicesID);
-#endif
         gl_exec(glBindVertexArray, vaoID);
 
         std::shared_ptr<Buffer<Vec3>> glbVertices = positions.make_buffer(GL_ARRAY_BUFFER,GL_STATIC_DRAW);
@@ -237,7 +238,7 @@ int main()
         // gl_exec(glBufferData, GL_ELEMENT_ARRAY_BUFFER, indices.byteSize(), indices.getData(), GL_STATIC_DRAW);
 
         gl_exec(glBindVertexArray, 0);
-
+#endif
         // std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
         // ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
         // ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
@@ -292,7 +293,7 @@ int main()
             // nvgEndFrame(vg);
 
             program->use();
-            glBindVertexArray(vaoID);
+            glBindVertexArray(vaoBuildID);
             GLint location = program->uniform_location("MVP");
             Matrix4 modelview_projection = proj * model_view;
             std::shared_ptr<float[]> mvp = glMat4(modelview_projection);
