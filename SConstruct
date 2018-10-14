@@ -22,4 +22,4 @@ print("Looking for options in " + optfile)
 vars = Variables(optfile)
 env = xscons.make_root_env(vars);
 env.Append(CPPPATH = [ "./inc", "./filesystem", "./stb", "./nanovg/src", "./sce_vectormath/include/vectormath/scalar/cpp"])
-env.Program("gfx_testbed", [ "src/glfw_window.cpp", "src/utils.cpp", "src/shader.cpp", "glad/src/glad.c", "nanovg/src/nanovg.c" ])
+env.Program("build/gfx_testbed", [ "src/glfw_window.cpp", "src/utils.cpp", "src/shader.cpp", "glad/src/glad.c", "nanovg/src/nanovg.c" ])
