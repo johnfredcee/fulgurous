@@ -68,13 +68,6 @@ void errorcb(int error, const char *desc)
     std::cerr << "GLFW error " << error << desc << std::endl;
 }
 
-// This example is taken from http://learnopengl.com/
-// http://learnopengl.com/code_viewer.php?code=getting-started/hellowindow2
-// The code originally used GLEW, I replaced it with Glad
-
-// Compile:
-// g++ example/c++/hellowindow2.cpp -Ibuild/include build/src/glad.c -lglfw -ldl
-
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
@@ -217,8 +210,9 @@ int main()
                      BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
                      BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
                      BufferInitialiser<Vec<GLushort, 1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
-
-#if 0
+        
+     
+#if 0 
         GLsizei stride = sizeof(ColouredVertex);
         gl_exec(glGenVertexArrays, 1, &vaoID);
     
@@ -269,45 +263,40 @@ int main()
         BufferBuilder<Vec3> ripple_positions;
         BufferBuilder<Vec<GLushort, 1>> ripple_indices;
 
+        //setup plane geometry
+        //setup plane vertices
         int count = 0;
-        int i = 0, j = 0;
-        for (j = 0; j <= NUM_Z; j++)
-        {
-            for (i = 0; i <= NUM_X; i++)
-            {
-                ripple_positions.add(Vec3{((float(i) / (NUM_X - 1.0f)) * 2.0f - 1.0f) * HALF_SIZE_X, 0.0f, ((float(j) / (NUM_Z - 1.0f)) * 2.0f - 1.0f) * HALF_SIZE_Z});
+        int i=0, j=0;
+        for( j=0;j<=NUM_Z;j++) {
+            for( i=0;i<=NUM_X;i++) {
+                ripple_positions.emplace(((float(i)/(NUM_X-1)) *2-1)* HALF_SIZE_X, 0.0f, ((float(j)/(NUM_Z-1))*2-1)*HALF_SIZE_Z);
             }
         }
 
         //fill plane indices array
-        for (i = 0; i < NUM_Z; i++)
-        {
-            for (j = 0; j < NUM_X; j++)
-            {
-                GLushort i0 = i * (NUM_X + 1) + j;
-                GLushort i1 = i0 + 1;
-                GLushort i2 = i0 + (NUM_X + 1);
-                GLushort i3 = i2 + 1;
-                if ((j + i) % 2)
-                {
-                    ripple_indices.add(Vec<GLushort,1>{i0});
-                    ripple_indices.add(Vec<GLushort,1>{i2});
-                    ripple_indices.add(Vec<GLushort,1>{i1});
-                    ripple_indices.add(Vec<GLushort,1>{i1});
-                    ripple_indices.add(Vec<GLushort,1>{i2});
-                    ripple_indices.add(Vec<GLushort,1>{i3});
-                }
-                else
-                {
-                    ripple_indices.add(Vec<GLushort,1>{i0});
-                    ripple_indices.add(Vec<GLushort,1>{i2});
-                    ripple_indices.add(Vec<GLushort,1>{i3});
-                    ripple_indices.add(Vec<GLushort,1>{i0});
-                    ripple_indices.add(Vec<GLushort,1>{i3});
-                    ripple_indices.add(Vec<GLushort,1>{i1});
+        for (i = 0; i < NUM_Z; i++) {
+            for (j = 0; j < NUM_X; j++) {
+                int i0 = i * (NUM_X+1) + j;
+                int i1 = i0 + 1;
+                int i2 = i0 + (NUM_X+1);
+                int i3 = i2 + 1;
+                if ((j+i)%2) {
+                    ripple_indices.emplace(i0); 
+                    ripple_indices.emplace(i2); 
+                    ripple_indices.emplace(i1);
+                    ripple_indices.emplace(i1); 
+                    ripple_indices.emplace(i2); 
+                    ripple_indices.emplace(i3);
+                } else {
+                    ripple_indices.emplace(i0); 
+                    ripple_indices.emplace(i2); 
+                    ripple_indices.emplace(i3);
+                    ripple_indices.emplace(i0); 
+                    ripple_indices.emplace(i3); 
+                    ripple_indices.emplace(i1);
                 }
             }
-        }
+    	}
 
         // Define the viewport dimensions
         // glViewport(0, 0, WIDTH, HEIGHT);

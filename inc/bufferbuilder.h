@@ -44,6 +44,11 @@ public:
 		mBuffer.push_back(vec);
 	}
 
+	template <typename... Args>
+	void emplace(Args&&... args)
+	{
+		mBuffer.emplace_back(std::forward<Args>(args)...);
+	}
 
 	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,3>>::value, element_type  >::type >
 	void add(Point3 point)

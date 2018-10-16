@@ -12,6 +12,8 @@ struct Vec<T, 1> {
     using type = T;
     static constexpr int dim = 1;
     T x;
+    Vec<T, 1>(const T& e) : x(e)
+    {}
     Vec<T, 1>  operator- ()                   const {return {-x};}
     Vec<T, 1>  operator+ (const Vec<T, 1> &o) const {return {x + o.x};}
     Vec<T, 1>  operator- (const Vec<T, 1> &o) const {return {x - o.x};}
@@ -25,6 +27,8 @@ struct Vec<T, 2> {
     static constexpr int dim = 2;
     union {T x, u;};
     union {T y, v;};
+    Vec<T, 2>(const T& e1, const T& e2) : x(e1), y(e2)
+    {}
     Vec<T, 2>  operator- ()                   const {return {-x, -y};}
     Vec<T, 2>  operator+ (const Vec<T, 2> &o) const {return {x + o.x, y + o.y};}
     Vec<T, 2>  operator- (const Vec<T, 2> &o) const {return {x - o.x, y - o.y};}
@@ -39,6 +43,8 @@ struct Vec<T, 3> {
     union {T x, r;};
     union {T y, g;};
     union {T z, b;};
+    Vec<T, 3>(const T& e1, const T& e2, const T& e3) : x(e1), y(e2), z(e3)
+    {}
     Vec<T, 3>  operator- ()                   const {return {-x, -y, -z};}
     Vec<T, 3>  operator+ (const Vec<T, 3> &o) const {return {x + o.x, y + o.y, z + o.z};}
     Vec<T, 3>  operator- (const Vec<T, 3> &o) const {return {x - o.x, y - o.y, z - o.z};}
@@ -56,6 +62,8 @@ struct Vec<T, 4> {
     union {T y, g;};
     union {T z, b;};
     union {T w, a;};
+    Vec<T, 4>(const T& e1, const T& e2, const T& e3, const T& e4) : x(e1), y(e2), z(e3), w(e4)
+    {}
     Vec<T, 4>  operator- ()                   const {return {-x, -y, -z, -w};}
     Vec<T, 4>  operator+ (const Vec<T, 4> &o) const {return {x + o.x, y + o.y, z + o.z, w + o.w};}
     Vec<T, 4>  operator- (const Vec<T, 4> &o) const {return {x - o.x, y - o.y, z - o.z, w - o.w};}
