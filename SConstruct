@@ -22,5 +22,5 @@ print("Looking for options in " + optfile)
 vars = Variables(optfile)
 env = xscons.make_root_env(vars);
 env.Append(CPPPATH = [ "./inc", "./filesystem", "./stb", "./nanovg/src", "./sce_vectormath/include/vectormath/scalar/cpp"])
-env.Program("triangle", [ "src/triangle.cpp", "src/utils.cpp", "src/shader.cpp", "glad/src/glad.c", "nanovg/src/nanovg.c" ])
-env.Program("ripple", [ "src/ripple.cpp", "src/utils.cpp", "src/shader.cpp", "glad/src/glad.c", "nanovg/src/nanovg.c" ])
+env.Program("build/triangle", [ "src/triangle.cpp", "src/utils.cpp", "src/shader.cpp", "glad/src/glad.c", "nanovg/src/nanovg.c" ])
+env.Program("build/ripple", [ "src/ripple.cpp", "src/utils.cpp", "src/shader.cpp", "glad/src/glad.c", "nanovg/src/nanovg.c" ])

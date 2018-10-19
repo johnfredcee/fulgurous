@@ -41,13 +41,13 @@ public:
 
 	void add(const element_type& vec)
 	{
-		mBsuffer.push_back(vec);
+		mBuffer.push_back(vec);
 	}
 
-	template<typename... Args>
-	void add(Args&&... args)
+	template <typename... Args>
+	void emplace(Args&&... args)
 	{
-		mBuffer.emplace_backs(std::forward<Args>(args)...);
+		mBuffer.emplace_back(std::forward<Args>(args)...);
 	}
 
 	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,3>>::value, element_type  >::type >
@@ -59,7 +59,7 @@ public:
 	}
 
 	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,3>>::value, element_type  >::type >
-	void add(V vec)
+	void add(Vector3& vec)
 	{
 		GLfloat v3[3];
 		storeXYZ(vec, &v3);
@@ -67,9 +67,9 @@ public:
 	}
 
 	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,4>>::value, element_type  >::type >
-	void add(V& vec)
+	void add(Vector4& vec)
 	{
-		GLfloat v3[4];
+		GLfloat v4[4];
 		storeXYZW(vec, &v4);
 		mBuffer.push_back(v4);
 	}

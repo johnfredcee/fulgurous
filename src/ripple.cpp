@@ -45,17 +45,28 @@ using namespace Vectormath::Aos;
 #include "bufferbuilder.h"
 #include "arraybuilder.h"
 
+namespace ripple
+{
+
+static constexpr int NUM_X = 40; //total quads on X axis
+static constexpr int NUM_Z = 40; //total quads on Z axis
+
+static constexpr float SIZE_X = 4; //size of plane in world space
+static constexpr float SIZE_Z = 4;
+static constexpr float HALF_SIZE_X = SIZE_X / 2.0f;
+static constexpr float HALF_SIZE_Z = SIZE_Z / 2.0f;
+
+//ripple displacement speed
+static constexpr float SPEED = 2;
+
+static constexpr int TOTAL_INDICES = NUM_X * NUM_Z * 2 * 3;
+
+} // namespace ripple
+
 void errorcb(int error, const char *desc)
 {
     std::cerr << "GLFW error " << error << desc << std::endl;
 }
-
-// This example is taken from http://learnopengl.com/
-// http://learnopengl.com/code_viewer.php?code=getting-started/hellowindow2
-// The code originally used GLEW, I replaced it with Glad
-
-// Compile:
-// g++ example/c++/hellowindow2.cpp -Ibuild/include build/src/glad.c -lglfw -ldl
 
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -116,6 +127,8 @@ GLuint vboIndicesID;
 Matrix4 proj = Matrix4::identity();
 
 int ghing = GL_FLOAT;
+
+using namespace ripple;
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
@@ -185,21 +198,21 @@ int main()
         }
         program->unuse();
 
-        using Vec4 = Vec<GLfloat,4>;
-        using Vec3 = Vec<GLfloat,3>;
+        using Vec4 = Vec<GLfloat, 4>;
+        using Vec3 = Vec<GLfloat, 3>;
 
         BufferBuilder<Vec3> positions = {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
         BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
-        BufferBuilder<Vec<GLushort,1>> indices = {{0}, {1}, {2}};
+        BufferBuilder<Vec<GLushort, 1>> indices = {{0}, {1}, {2}};
 
         arrayBuilder(vaoBuildID,
-                    program,
-                    BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-                    BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-                    BufferInitialiser<Vec<GLushort,1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
-
-
-#if 0
+                     program,
+                     BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+                     BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+                     BufferInitialiser<Vec<GLushort, 1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
+        
+     
+#if 0 
         GLsizei stride = sizeof(ColouredVertex);
         gl_exec(glGenVertexArrays, 1, &vaoID);
     
@@ -246,6 +259,44 @@ int main()
         ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
         ripple_program->link();
         ripple_program->use();
+
+        BufferBuilder<Vec3> ripple_positions;
+        BufferBuilder<Vec<GLushort, 1>> ripple_indices;
+
+        //setup plane geometry
+        //setup plane vertices
+        int count = 0;
+        int i=0, j=0;
+        for( j=0;j<=NUM_Z;j++) {
+            for( i=0;i<=NUM_X;i++) {
+                ripple_positions.emplace(((float(i)/(NUM_X-1)) *2-1)* HALF_SIZE_X, 0.0f, ((float(j)/(NUM_Z-1))*2-1)*HALF_SIZE_Z);
+            }
+        }
+
+        //fill plane indices array
+        for (i = 0; i < NUM_Z; i++) {
+            for (j = 0; j < NUM_X; j++) {
+                int i0 = i * (NUM_X+1) + j;
+                int i1 = i0 + 1;
+                int i2 = i0 + (NUM_X+1);
+                int i3 = i2 + 1;
+                if ((j+i)%2) {
+                    ripple_indices.emplace(i0); 
+                    ripple_indices.emplace(i2); 
+                    ripple_indices.emplace(i1);
+                    ripple_indices.emplace(i1); 
+                    ripple_indices.emplace(i2); 
+                    ripple_indices.emplace(i3);
+                } else {
+                    ripple_indices.emplace(i0); 
+                    ripple_indices.emplace(i2); 
+                    ripple_indices.emplace(i3);
+                    ripple_indices.emplace(i0); 
+                    ripple_indices.emplace(i3); 
+                    ripple_indices.emplace(i1);
+                }
+            }
+    	}
 
         // Define the viewport dimensions
         // glViewport(0, 0, WIDTH, HEIGHT);
