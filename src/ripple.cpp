@@ -239,13 +239,13 @@ int main()
 
         gl_exec(glBindVertexArray, 0);
 #endif
-        // std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
-        // ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
-        // ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
-        // ripple_program->compile(ShaderKind::eVERTEX_SHADER);
-        // ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
-        // ripple_program->link();
-        // ripple_program->use();
+        std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
+        ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
+        ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
+        ripple_program->compile(ShaderKind::eVERTEX_SHADER);
+        ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
+        ripple_program->link();
+        ripple_program->use();
 
         // Define the viewport dimensions
         // glViewport(0, 0, WIDTH, HEIGHT);
