@@ -74,7 +74,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void fb_size_callback(GLFWwindow *window, int width, int height);
 
 // Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 600;
+static constexpr GLuint WIDTH = 800, HEIGHT = 600;
 
 struct ColouredVertex
 {
@@ -82,7 +82,7 @@ struct ColouredVertex
     Vector4 colour;
 };
 
-void drawWindow(NVGcontext *vg, const char *title, float x, float y, float w, float h)
+void drawUI(NVGcontext *vg, const char *title, float x, float y, float w, float h)
 {
     float cornerRadius = 3.0f;
 
@@ -117,6 +117,9 @@ std::shared_ptr<float[]> glMat4(const Matrix4 &mat4)
     return result;
 }
 
+using Vec4 = Vec<GLfloat,4>;
+using Vec3 = Vec<GLfloat,3>;
+
 ColouredVertex vertices[3];
 GLshort indices[3];
 GLuint vaoID;
@@ -126,6 +129,15 @@ GLuint vboColorsID;
 GLuint vboIndicesID;
 Matrix4 proj = Matrix4::identity();
 
+int winWidth, winHeight;
+int fbWidth, fbHeight;
+
+//camera transformation variables
+int state = 0, oldX=0, oldY=0;
+float rX=25, rY=-40, camdist = -7;
+
+//current time
+float time = 0;
 int ghing = GL_FLOAT;
 
 using namespace ripple;
@@ -179,82 +191,9 @@ int main()
 
         glfwSwapInterval(0);
 
-        std::shared_ptr<ShaderProgram> program(new ShaderProgram());
-        program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
-        program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
-        program->compile(ShaderKind::eVERTEX_SHADER);
-        program->compile(ShaderKind::eFRAGMENT_SHADER);
-        program->link();
-        program->use();
-
-        for (auto &&uniform : program->uniforms)
-        {
-            std::cout << "Uniform " << uniform.location << " : " << uniform.name << std::endl;
-        }
-
-        for (auto &&attribute : program->attributes)
-        {
-            std::cout << "Attribute " << attribute.location << " : " << attribute.name << std::endl;
-        }
-        program->unuse();
-
-        using Vec4 = Vec<GLfloat, 4>;
-        using Vec3 = Vec<GLfloat, 3>;
-
-        BufferBuilder<Vec3> positions = {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
-        BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
-        BufferBuilder<Vec<GLushort, 1>> indices = {{0}, {1}, {2}};
-
-        arrayBuilder(vaoBuildID,
-                     program,
-                     BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-                     BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-                     BufferInitialiser<Vec<GLushort, 1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
-        
-     
-#if 0 
-        GLsizei stride = sizeof(ColouredVertex);
-        gl_exec(glGenVertexArrays, 1, &vaoID);
-    
-    gl_exec(glGenBuffers, 1, &vboVerticesID);
-    gl_exec(glGenBuffers, 1, &vboColorsID);
-    gl_exec(glGenBuffers, 1, &vboIndicesID);
-        gl_exec(glBindVertexArray, vaoID);
-
-        std::shared_ptr<Buffer<Vec3>> glbVertices = positions.make_buffer(GL_ARRAY_BUFFER,GL_STATIC_DRAW);
-        //produce_buffer<Vec<GLfloat, 3>>(GL_ARRAY_BUFFER, positions.getData(), positions.elementCount(), GL_STATIC_DRAW);
-
-        // positions.make_buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-        // gl_exec(glBindBuffer, GL_ARRAY_BUFFER, vboVerticesID);
-        // gl_exec(glBufferData, GL_ARRAY_BUFFER, positions.byteSize(), positions.getData(), GL_STATIC_DRAW);
-        glbVertices->bindAttribute(program, "vVertex");
-
-        // GLint location = program->attribute_location("vVertex");
-        // gl_exec(glEnableVertexAttribArray, location);
-        // gl_exec(glVertexAttribPointer, location, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-        std::shared_ptr<Buffer<Vec4>> glbColors = colors.make_buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-        //smake_buffer<Vec<GLfloat, 4>>(GL_ARRAY_BUFFER, colors.getData(), colors.elementCount(), GL_STATIC_DRAW);
-        // gl_exec(glBindBuffer, GL_ARRAY_BUFFER, vboColorsID);
-        // gl_exec(glBufferData, GL_ARRAY_BUFFER, colors.byteSize(), colors.getData(), GL_STATIC_DRAW);
-        // GLint location = program->attribute_location("vColor");
-        glbColors->bindAttribute(program, "vColor");
-        // location = program->attribute_location("vColor");
-        // gl_exec(glEnableVertexAttribArray, location);
-        // gl_exec(glVertexAttribPointer, location, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-        std::shared_ptr<Buffer<Vec<GLushort,1>>> glbIndices = indices.make_buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-        //produce_buffer<Vec<GLushort, 1>>(GL_ELEMENT_ARRAY_BUFFER, indices.getData(), indices.elementCount(), GL_STATIC_DRAW);
-        //glbIndices->bindIndices();
-
-        // gl_exec(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
-        // gl_exec(glBufferData, GL_ELEMENT_ARRAY_BUFFER, indices.byteSize(), indices.getData(), GL_STATIC_DRAW);
-
-        gl_exec(glBindVertexArray, 0);
-#endif
         std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
-        ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
-        ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
+        ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/ripple.vert");
+        ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/ripple.frag");
         ripple_program->compile(ShaderKind::eVERTEX_SHADER);
         ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
         ripple_program->link();
@@ -298,27 +237,10 @@ int main()
             }
     	}
 
-        // Define the viewport dimensions
-        // glViewport(0, 0, WIDTH, HEIGHT);
-
-        // Point3 position{ 1.0f, 1.0f, - 1.0f };
-        // Point3 eye_pos{0.0f, 0.0f, 5.0f};
-        // Point3 lookat_pos{0.0f, 0.0f, 0.0f};
-        // Vector3 up{0.0f, 0.0f, 1.0f};
-        // Matrix4 view(Matrix4::lookAt(eye_pos, lookat_pos, up));
-        // Matrix4 model = Matrix4::identity();
-        // model *= Matrix4::rotation(3.145f / 2.0f, up);
-        // Matrix4 model_view = view * model;
-        Matrix4 model_view = Matrix4::identity();
-        // Vector4 transformed = model_view * position;
-        // std::shared_ptr<float[]> mvp = glMat4(model_view);
-
         // Game loop
         while (!glfwWindowShouldClose(window))
         {
             double mx, my, t, dt;
-            int winWidth, winHeight;
-            int fbWidth, fbHeight;
             float pxRatio;
 
             // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
@@ -339,19 +261,30 @@ int main()
 
             // nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
-            // drawWindow(vg, "Widgets `n Stuff", 50, 50, 300, 400);
+            // drawUI(vg, "Widgets `n Stuff", 50, 50, 300, 400);
 
             // nvgEndFrame(vg);
+            float vtime = glfwGetTime() / 1000.0f;
 
-            program->use();
-            glBindVertexArray(vaoBuildID);
-            GLint location = program->uniform_location("MVP");
+            Point3 eye_pos{0.0f, 0.0f, camdist};
+            Point3 lookat_pos{0.0f, 0.0f, 0.0f};
+            Vector3 up{0.0f, 0.0f, 1.0f};
+            Matrix4 view(Matrix4::lookAt(eye_pos, lookat_pos, up));
+            Matrix4 model = Matrix4::identity();
+        // model *= Matrix4::rotation(3.145f / 2.0f, up);
+            Matrix4 model_view = view * model;
             Matrix4 modelview_projection = proj * model_view;
             std::shared_ptr<float[]> mvp = glMat4(modelview_projection);
+
+            ripple_program->use();
+            glBindVertexArray(vaoBuildID);
+            GLint location = ripple_program->uniform_location("MVP");
+            modelview_projection = proj * model_view;
+            mvp = glMat4(modelview_projection);
             glUniformMatrix4fv(location, 1, GL_FALSE, mvp.get());
             glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0);
             glBindVertexArray(0);
-            program->unuse();
+            ripple_program->unuse();
             // Swap the screen buffers
             glfwSwapBuffers(window);
         }
@@ -375,5 +308,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void fb_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
-    proj = Matrix4::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f);
+    
+    proj = Matrix4::perspective(3.14f / 2.0f, (GLfloat) width / height, 1.0f, 1000.0f );
 }
