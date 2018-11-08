@@ -122,7 +122,7 @@ int main()
 {
     NVGcontext *vg = NULL;
 
-    std::cout << "Starting GLFW context, OpenGL 4.1" << std::endl;
+    std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
     // Init GLFW
     glfwInit();
 
@@ -136,7 +136,7 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
     // Create a GLFWwindow object that we can use for GLFW's functions
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Triangle", NULL, NULL);
     glfwMakeContextCurrent(window);
     if (window == NULL)
     {
@@ -198,69 +198,7 @@ int main()
                     BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
                     BufferInitialiser<Vec<GLushort,1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
 
-
-#if 0
-        GLsizei stride = sizeof(ColouredVertex);
-        gl_exec(glGenVertexArrays, 1, &vaoID);
-    
-    gl_exec(glGenBuffers, 1, &vboVerticesID);
-    gl_exec(glGenBuffers, 1, &vboColorsID);
-    gl_exec(glGenBuffers, 1, &vboIndicesID);
-        gl_exec(glBindVertexArray, vaoID);
-
-        std::shared_ptr<Buffer<Vec3>> glbVertices = positions.make_buffer(GL_ARRAY_BUFFER,GL_STATIC_DRAW);
-        //produce_buffer<Vec<GLfloat, 3>>(GL_ARRAY_BUFFER, positions.getData(), positions.elementCount(), GL_STATIC_DRAW);
-
-        // positions.make_buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-        // gl_exec(glBindBuffer, GL_ARRAY_BUFFER, vboVerticesID);
-        // gl_exec(glBufferData, GL_ARRAY_BUFFER, positions.byteSize(), positions.getData(), GL_STATIC_DRAW);
-        glbVertices->bindAttribute(program, "vVertex");
-
-        // GLint location = program->attribute_location("vVertex");
-        // gl_exec(glEnableVertexAttribArray, location);
-        // gl_exec(glVertexAttribPointer, location, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-        std::shared_ptr<Buffer<Vec4>> glbColors = colors.make_buffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW);
-        //smake_buffer<Vec<GLfloat, 4>>(GL_ARRAY_BUFFER, colors.getData(), colors.elementCount(), GL_STATIC_DRAW);
-        // gl_exec(glBindBuffer, GL_ARRAY_BUFFER, vboColorsID);
-        // gl_exec(glBufferData, GL_ARRAY_BUFFER, colors.byteSize(), colors.getData(), GL_STATIC_DRAW);
-        // GLint location = program->attribute_location("vColor");
-        glbColors->bindAttribute(program, "vColor");
-        // location = program->attribute_location("vColor");
-        // gl_exec(glEnableVertexAttribArray, location);
-        // gl_exec(glVertexAttribPointer, location, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-        std::shared_ptr<Buffer<Vec<GLushort,1>>> glbIndices = indices.make_buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-        //produce_buffer<Vec<GLushort, 1>>(GL_ELEMENT_ARRAY_BUFFER, indices.getData(), indices.elementCount(), GL_STATIC_DRAW);
-        //glbIndices->bindIndices();
-
-        // gl_exec(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
-        // gl_exec(glBufferData, GL_ELEMENT_ARRAY_BUFFER, indices.byteSize(), indices.getData(), GL_STATIC_DRAW);
-
-        gl_exec(glBindVertexArray, 0);
-#endif
-        std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
-        ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
-        ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
-        ripple_program->compile(ShaderKind::eVERTEX_SHADER);
-        ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
-        ripple_program->link();
-        ripple_program->use();
-
-        // Define the viewport dimensions
-        // glViewport(0, 0, WIDTH, HEIGHT);
-
-        // Point3 position{ 1.0f, 1.0f, - 1.0f };
-        // Point3 eye_pos{0.0f, 0.0f, 5.0f};
-        // Point3 lookat_pos{0.0f, 0.0f, 0.0f};
-        // Vector3 up{0.0f, 0.0f, 1.0f};
-        // Matrix4 view(Matrix4::lookAt(eye_pos, lookat_pos, up));
-        // Matrix4 model = Matrix4::identity();
-        // model *= Matrix4::rotation(3.145f / 2.0f, up);
-        // Matrix4 model_view = view * model;
         Matrix4 model_view = Matrix4::identity();
-        // Vector4 transformed = model_view * position;
-        // std::shared_ptr<float[]> mvp = glMat4(model_view);
 
         // Game loop
         while (!glfwWindowShouldClose(window))

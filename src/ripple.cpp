@@ -63,14 +63,10 @@ static constexpr int TOTAL_INDICES = NUM_X * NUM_Z * 2 * 3;
 
 } // namespace ripple
 
-void errorcb(int error, const char *desc)
-{
-    std::cerr << "GLFW error " << error << desc << std::endl;
-}
 
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
-
+void errorcb(int error, const char *desc);
 void fb_size_callback(GLFWwindow *window, int width, int height);
 
 // Window dimensions
@@ -147,7 +143,7 @@ int main()
 {
     NVGcontext *vg = NULL;
 
-    std::cout << "Starting GLFW context, OpenGL 4.1" << std::endl;
+    std::cout << "Starting GLFW corecontext, OpenGL 3.3" << std::endl;
     // Init GLFW
     glfwInit();
 
@@ -161,7 +157,7 @@ int main()
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
     // Create a GLFWwindow object that we can use for GLFW's functions
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Ripple", NULL, NULL);
     glfwMakeContextCurrent(window);
     if (window == NULL)
     {
@@ -198,6 +194,17 @@ int main()
         ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
         ripple_program->link();
         ripple_program->use();
+
+        for (auto &&uniform : ripple_program->uniforms)
+        {
+            std::cout << "Uniform " << uniform.location << " : " << uniform.name << std::endl;
+        }
+
+        for (auto &&attribute : ripple_program->attributes)
+        {
+            std::cout << "Attribute " << attribute.location << " : " << attribute.name << std::endl;
+        }
+        ripple_program->unuse();
 
         BufferBuilder<Vec3> ripple_positions;
         BufferBuilder<Vec<GLushort, 1>> ripple_indices;
@@ -236,6 +243,11 @@ int main()
                 }
             }
     	}
+
+        arrayBuilder(vaoBuildID,
+                    ripple_program,
+                    BufferInitialiser<Vec3>{"vVertex", ripple_positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+                    BufferInitialiser<Vec<GLushort,1>>{"", ripple_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
 
         // Game loop
         while (!glfwWindowShouldClose(window))
@@ -307,7 +319,11 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void fb_size_callback(GLFWwindow *window, int width, int height)
 {
-    glViewport(0, 0, width, height);
-    
+    glViewport(0, 0, width, height); 
     proj = Matrix4::perspective(3.14f / 2.0f, (GLfloat) width / height, 1.0f, 1000.0f );
+}
+
+void errorcb(int error, const char *desc)
+{
+    std::cerr << "GLFW error " << error << desc << std::endl;
 }
