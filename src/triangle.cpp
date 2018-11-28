@@ -45,30 +45,122 @@ using namespace Vectormath::Aos;
 #include "bufferbuilder.h"
 #include "arraybuilder.h"
 
-void errorcb(int error, const char *desc)
+struct Context
 {
-    std::cerr << "GLFW error " << error << desc << std::endl;
-}
+    // Window dimensions
+    static GLuint           width; 
+    static GLuint           height;
+    NVGcontext             *vg;
+    GLFWerrorfun            errorcb;
+    GLFWkeyfun              keycb;
+    GLFWframebuffersizefun   fbsizecn;
+    GLFWwindow               *window;
+    typedef                   void(* updatefun)(const Context& context);
+    typedef                   void(* drawfun)(const Context& context, float alpha);
+    drawfun                   drawcb{[](const Context& context, float alpha){ return; }};
+    updatefun                 updatecb{[](const Context&context){ return; }};
+    std::vector<std::shared_ptr<ShaderProgram>>    programs;
+    static void default_error_cb(int error, const char* desc)
+    {
+        std::cerr << "GLFW error " << error << desc << std::endl;
+    }
 
-// This example is taken from http://learnopengl.com/
-// http://learnopengl.com/code_viewer.php?code=getting-started/hellowindow2
-// The code originally used GLEW, I replaced it with Glad
+    // Is called whenever a key is pressed/released via GLFW
+    static void default_key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
+    {
+        std::cout << key << std::endl;
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, GL_TRUE);
+    }
 
-// Compile:
-// g++ example/c++/hellowindow2.cpp -Ibuild/include build/src/glad.c -lglfw -ldl
+    static void default_fbsize_callback(GLFWwindow *window, int width, int height)
+    {
+        glViewport(0, 0, width, height);
+    }
 
-// Function prototypes
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+    Context(GLuint width, GLuint height, const char* title) 
+    {
+        vg = nullptr;
+        this->width = width;
+        this->height = height;
+        std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
+        // Init GLFW
+        glfwInit();
+        errorcb = default_error_cb;
+        glfwSetErrorCallback(default_error_cb);
+        // Set all the required options for GLFW
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-void fb_size_callback(GLFWwindow *window, int width, int height);
+        // Create a GLFWwindow object that we can use for GLFW's functions
+        window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+        glfwMakeContextCurrent(window);
+        if (window == nullptr)
+        {
+            std::cerr << "Failed to create GLFW window" << std::endl;
+            glfwTerminate();
+        }
 
-// Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 600;
+        // Set the required callback functions
+        glfwSetKeyCallback(window, default_key_callback);
+        glfwSetFramebufferSizeCallback(window, default_fbsize_callback);
+
+        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        {
+            std::cerr << "Failed to initialize OpenGL context" << std::endl;
+            glfwTerminate();
+        }
+
+        vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+        int fontBold = nvgCreateFont(vg, "sans-bold", "./nanovg/example//Roboto-Bold.ttf");
+        if (fontBold == -1)
+        {
+            std::cerr << "Could not add font bold.\n" << std::endl;
+            glfwTerminate();
+        }
+        glfwSwapInterval(0);
+    }
+
+    bool done()
+    {
+        return glfwWindowShouldClose(window);
+    }
+
+    void draw()
+    {
+        // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
+        glfwPollEvents();
+        drawcb(*this, 0.0f);
+        // Swap the screen buffers
+        glfwSwapBuffers(window);           
+        return;
+    }
+
+    ~Context()
+    {        
+        glfwSetKeyCallback(window, nullptr);
+        glfwSetFramebufferSizeCallback(window, nullptr);
+        nvgDeleteGL3(vg);
+        glfwSetErrorCallback(nullptr);
+        // Terminates GLFW, clearing any resources allocated by GLFW.
+        glfwTerminate();       
+    }
+
+    Context() = delete;
+    Context(const Context& other) = delete;
+};
+
+GLuint Context::width  = 800; 
+GLuint Context::height = 600;
+
 
 struct ColouredVertex
 {
     Point3 position;
     Vector4 colour;
+    
 };
 
 void drawWindow(NVGcontext *vg, const char *title, float x, float y, float w, float h)
@@ -113,59 +205,17 @@ GLuint vaoBuildID;
 GLuint vboVerticesID;
 GLuint vboColorsID;
 GLuint vboIndicesID;
-Matrix4 proj = Matrix4::identity();
+Matrix4 proj = Matrix4::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f);
+Matrix4 model_view = Matrix4::identity();
+
 
 int ghing = GL_FLOAT;
 
 // The MAIN function, from here we start the application and run the game loop
 int main()
 {
-    NVGcontext *vg = NULL;
-
-    std::cout << "Starting GLFW context, OpenGL 3.3" << std::endl;
-    // Init GLFW
-    glfwInit();
-
-    // Handle errors
-    glfwSetErrorCallback(errorcb);
-
-    // Set all the required options for GLFW
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-    // Create a GLFWwindow object that we can use for GLFW's functions
-    GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Triangle", NULL, NULL);
-    glfwMakeContextCurrent(window);
-    if (window == NULL)
+    std::unique_ptr<Context> context = std::make_unique<Context>(800, 600, "Triangle");
     {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-
-    // Set the required callback functions
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetFramebufferSizeCallback(window, fb_size_callback);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        std::cout << "Failed to initialize OpenGL context" << std::endl;
-        return -1;
-    }
-
-    vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-    {
-        int fontBold = nvgCreateFont(vg, "sans-bold", "./nanovg/example//Roboto-Bold.ttf");
-        if (fontBold == -1)
-        {
-            std::cerr << "Could not add font bold.\n"
-                      << std::endl;
-            return -1;
-        }
-
-        glfwSwapInterval(0);
-
         std::shared_ptr<ShaderProgram> program(new ShaderProgram());
         program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/shader.vert");
         program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/shader.frag");
@@ -184,7 +234,7 @@ int main()
             std::cout << "Attribute " << attribute.location << " : " << attribute.name << std::endl;
         }
         program->unuse();
-
+        context->programs.push_back(program);
         using Vec4 = Vec<GLfloat,4>;
         using Vec3 = Vec<GLfloat,3>;
 
@@ -198,22 +248,15 @@ int main()
                     BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
                     BufferInitialiser<Vec<GLushort,1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
 
-        Matrix4 model_view = Matrix4::identity();
-
-        // Game loop
-        while (!glfwWindowShouldClose(window))
+        context->drawcb = [](const Context& context, float alpha)
         {
             double mx, my, t, dt;
             int winWidth, winHeight;
             int fbWidth, fbHeight;
             float pxRatio;
-
-            // Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
-            glfwPollEvents();
-
-            glfwGetCursorPos(window, &mx, &my);
-            glfwGetWindowSize(window, &winWidth, &winHeight);
-            glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+            glfwGetCursorPos(context.window, &mx, &my);
+            glfwGetWindowSize(context.window, &winWidth, &winHeight);
+            glfwGetFramebufferSize(context.window, &fbWidth, &fbHeight);
             // Calculate pixel ration for hi-dpi devices.
             pxRatio = (float)fbWidth / (float)winWidth;
 
@@ -229,7 +272,7 @@ int main()
             // drawWindow(vg, "Widgets `n Stuff", 50, 50, 300, 400);
 
             // nvgEndFrame(vg);
-
+            std::shared_ptr<ShaderProgram> program(context.programs[0]);
             program->use();
             glBindVertexArray(vaoBuildID);
             GLint location = program->uniform_location("MVP");
@@ -239,28 +282,14 @@ int main()
             glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0);
             glBindVertexArray(0);
             program->unuse();
-            // Swap the screen buffers
-            glfwSwapBuffers(window);
-        }
+        };
+
+        // Game loop
+        while (!context->done())
+        {
+            context->draw();
+        }        
     }
-
-    nvgDeleteGL3(vg);
-
-    // Terminates GLFW, clearing any resources allocated by GLFW.
-    glfwTerminate();
     return 0;
 }
 
-// Is called whenever a key is pressed/released via GLFW
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
-{
-    std::cout << key << std::endl;
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-void fb_size_callback(GLFWwindow *window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-    proj = Matrix4::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f);
-}
