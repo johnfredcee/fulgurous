@@ -102,12 +102,26 @@ struct DrawCall
 	}
 
 	template<>
+	void addUniform(std::string uniformName, Vec<GLfloat, 3>& v)
+	{
+		GLuint location = program->uniform_location(uniformName);
+	  	glUniform3fv(location, 1, &v.x);
+	}
+
+	template<>
 	void addUniform(std::string uniformName, Vector4& v)
 	{
 		static GLfloat v4[4];
 		GLuint location = program->uniform_location(uniformName);
 		storeXYZW(v, v4);
 	  	glUniform4fv(location, 1, v4);
+	}
+
+	template<>
+	void addUniform(std::string uniformName, Vec<GLfloat, 4>& v)
+	{
+		GLuint location = program->uniform_location(uniformName);
+	  	glUniform4fv(location, 1, &v.x);
 	}
 
 	template<>
