@@ -45,6 +45,7 @@ using namespace Vectormath::Aos;
 #include "bufferbuilder.h"
 #include "arraybuilder.h"
 #include "context.h"
+#include "vertexdata.h"
 #include "drawcall.h"
 
 GLuint Context::width = 800;

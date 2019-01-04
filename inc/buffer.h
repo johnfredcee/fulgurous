@@ -75,7 +75,8 @@ public:
 	 * Actually draw the contents of the buffer
 	 * @param mode Primitive type to draw eg GL_TRIANGLES
 	 */
-	void draw(GLenum mode) const  {
+	void draw(GLenum mode) const  
+	{
 		assert(mTarget == GL_ELEMENT_ARRAY_BUFFER);
 		gl_exec(glDrawElements, mode, mSize, mType, (void*) 0);
 	}
