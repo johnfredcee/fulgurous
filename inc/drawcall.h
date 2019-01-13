@@ -7,6 +7,7 @@
 struct DrawCall
 {
 	std::shared_ptr<ShaderProgram> program;
+	GLuint vaoID;
 	GLuint mSize;
 	GLenum mType;
 
@@ -41,12 +42,15 @@ struct DrawCall
 	DrawCall(std::shared_ptr<ShaderProgram> inProgram) : program(inProgram)
 	{	
 		program->use();
+		gl_exec(glGenVertexArrays, 1, &vaoID);
 	}
 
 	template<typename T>
 	void addBuffer(std::string name, std::shared_ptr< Buffer<T> > buffer)
 	{
+		gl_exec(glBindVertexArray, vaoID);
 		buffer->bindAttribute(program, name);
+	    gl_exec(glBindVertexArray, 0);
 	}
 
 	template<typename T>
@@ -135,7 +139,9 @@ struct DrawCall
 
 	void draw(GLenum mode = GL_TRIANGLES)
 	{
+		gl_exec(glBindVertexArray, vaoID);
 		gl_exec(glDrawElements, mode, mSize, mType, (void*) 0);
+		gl_exec(glBindVertexArray, 0);
 	}
 
 	~DrawCall()
@@ -146,6 +152,6 @@ struct DrawCall
 		   gl_exec(glDisableVertexAttribArray, location);
 		}
 		program->unuse();
-
+		gl_exec(glDeleteVertexArrays, 1, &vaoID);
 	}
 };

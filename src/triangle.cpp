@@ -47,6 +47,7 @@ using namespace Vectormath::Aos;
 #include "context.h"
 #include "vertexdata.h"
 #include "drawcall.h"
+#include "framebuffer.h"
 
 GLuint Context::width = 800;
 GLuint Context::height = 600;

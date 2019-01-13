@@ -6,6 +6,7 @@
 
 #include <tuple>
 #include <vector>
+#include <string>
 #include "bufferbuilder.h"
 #include "drawcall.h"
 
@@ -16,7 +17,7 @@ template<typename T>
 using BufferInitialiser = std::tuple<std::string, BufferBuilder<T>, GLenum, GLenum>;
 
 template<typename T>
-using UnformInitialiser = std::tuple<std::string, T value>;
+using UniformInitialiser = std::tuple<std::string, T>;
 
 template< typename T >
 auto BuildVAOBuffer(std::shared_ptr<ShaderProgram> program, T t)

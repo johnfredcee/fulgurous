@@ -33,8 +33,10 @@ public:
 		gl_exec(glGenBuffers, 1, &mBuffer);
 		gl_exec(glBindBuffer, mTarget, mBuffer);
 		gl_exec(glBufferData, mTarget, count * typeSize * mComponentCount, bufferData, usage);
+		gl_exec(glBindBuffer, mTarget, 0);
 		return;
 	}
+
 
 	~Buffer() 
 	{
@@ -54,14 +56,17 @@ public:
 		constexpr GLsizei typeSize = sizeof(component_type);
 		gl_exec(glBindBuffer, mTarget, mBuffer);
 		gl_exec(glBufferData, mTarget, mSize * typeSize * mComponentCount, bufferData, usage);
+		gl_exec(glBindBuffer, mTarget, 0);
 		return;
 	}
 
  	 void bindAttribute(std::shared_ptr<ShaderProgram> program, const std::string& name) 
 	 {
 	    GLint location = program->attribute_location(name);
+		gl_exec(glBindBuffer, mTarget, mBuffer);
 		gl_exec(glEnableVertexAttribArray, location);
 		gl_exec(glVertexAttribPointer, location, mComponentCount, mType, GL_FALSE, sizeof(component_type) * mComponentCount, nullptr);
+		gl_exec(glBindBuffer, mTarget, 0);
 	 }
 
 
