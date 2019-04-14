@@ -65,7 +65,7 @@ public:
 	    GLint location = program->attribute_location(name);
 		gl_exec(glBindBuffer, mTarget, mBuffer);
 		gl_exec(glEnableVertexAttribArray, location);
-		gl_exec(glVertexAttribPointer, location, mComponentCount, mType, GL_FALSE, sizeof(component_type) * mComponentCount, nullptr);
+		gl_exec(glVertexAttribPointer, location, mComponentCount, mType, GL_FALSE, GLsizei(sizeof(component_type) * mComponentCount), nullptr);
 		gl_exec(glBindBuffer, mTarget, 0);
 	 }
 

@@ -20,18 +20,24 @@ template<typename T>
 using UniformInitialiser = std::tuple<std::string, T>;
 
 template< typename T >
-auto BuildVAOBuffer(std::shared_ptr<ShaderProgram> program, T t)
+auto BuildVAOBuffer(std::shared_ptr<ShaderProgram> program, BufferInitialiser<T> t)
 {
-    using B = std::tuple_element<1,T>::type;
-    using BT = Buffer<typename B::element_type>;
-    std::shared_ptr<typename BT> buffer = std::get<1>(t).make_buffer(std::get<2>(t), std::get<3>(t));
-    std::string parameterName(std::get<0>(t));
+    using BT = Buffer<typename T>;
+	auto&[name, builder, array_type, element_type] = t;
+    std::shared_ptr<typename BT> buffer = builder.make_buffer(array_type, element_type);
+    std::string parameterName(name);
     if (!parameterName.empty()) {
         buffer->bindAttribute(program, parameterName);
     } else {
         buffer->bindIndices();
     }
     return buffer;
+}
+
+template<typename T> 
+auto BuildBuffers(T t)
+{
+
 }
 
 template <class... Ts>
@@ -47,14 +53,14 @@ void arrayBuilder(GLuint& vaoID, std::shared_ptr<ShaderProgram> program, Ts... t
 
 
 template <typename T>
-auto addBufferToDrawCall(std::shared_ptr<DrawCall> call, T t)
+auto addBufferToDrawCall(std::shared_ptr<DrawCall> call,  BufferInitialiser<T> t)
 {
-    using B = std::tuple_element<1,T>::type;
-	using BT = Buffer<typename B::element_type>;
-    std::shared_ptr<typename BT> buffer = std::get<1>(t).make_buffer(std::get<2>(t), std::get<3>(t));
-    std::string parameterName(std::get<0>(t));
+    using BT = Buffer<typename T>;
+	auto&[name, builder, array_type, element_type] = t;
+    std::shared_ptr<typename BT> buffer = builder.make_buffer(array_type, element_type);
+    std::string parameterName(name);
     if (!parameterName.empty()) {
-        call->addBuffer(arameterName, buffer);
+        call->addBuffer(parameterName, buffer);
     } else {
     	call->>bindIndices(buffer);
     }
@@ -67,7 +73,7 @@ void bufferAggregator(std::shared_ptr<DrawCall> call, Ts... Ts)
 }
 
 template <typename T>
-auto addnoformToDrawCall(std::shared_ptr<DrawCall> call, T t)
+auto addUniformToDrawCall(std::shared_ptr<DrawCall> call, T t)
 {
    std::string parameterName(std::get<0>(t));
    call->addUniform(parameterName, std::get<1>(t));

@@ -6,4 +6,3 @@ GLFW_INCLUDE_PATH = r"D:\Dev\sdks\glfw\include"
 GLFW_LIB_PATH =  r"D:\Dev\sdks\glfw\lib"
 GLAD_INCLUDE_PATH =  r".\glad\include"
 VC_BUILD_TOOLS_PATH="c:/Program Files (x86)/Microsoft Visual C++ Build Tools"
-PROJECT_CXXFLAGS=["/EHsc"]
