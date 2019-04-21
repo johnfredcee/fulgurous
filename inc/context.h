@@ -83,12 +83,12 @@ struct Context
 
 	~Context()
 	{
+		gl_exec(glUseProgram, 0);
+		programs.clear();
 		glfwSetKeyCallback(window, nullptr);
 		glfwSetFramebufferSizeCallback(window, nullptr);
 		nvgDeleteGL3(vg);
 		glfwSetErrorCallback(nullptr);
-		// Terminates GLFW, clearing any resources allocated by GLFW.
-		glfwTerminate();
 	}
 
 	bool done()

@@ -64,10 +64,11 @@ static constexpr int TOTAL_INDICES = NUM_X * NUM_Z * 2 * 3;
 } // namespace ripple
 
 // Function prototypes
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
+void key_cb(GLFWwindow *window, int key, int scancode, int action, int mode);
 void error_cb(int error, const char *desc);
-void fb_size_callback(GLFWwindow *window, int width, int height);
+void fb_size_cb(GLFWwindow *window, int width, int height);
 void mouse_button_cb(GLFWwindow *window, int button, int action, int mods);
+void mouse_move_cb(GLFWwindow *window, double xpos, double ypos);
 
 // Window dimensions
 static constexpr GLuint WIDTH = 800, HEIGHT = 600;
@@ -105,8 +106,7 @@ GLuint vboVerticesID;
 GLuint vboIndicesID;
 Matrix4 P = Matrix4::identity();
 
-int winWidth, winHeight;
-int fbWidth, fbHeight;
+int width, height;
 
 //current time
 float time = 0;
@@ -128,7 +128,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
 	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Ripple", NULL, NULL);
@@ -147,9 +147,13 @@ int main()
 	}
 
 	// Set the required callback functions
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetFramebufferSizeCallback(window, fb_size_callback);
+	glfwSetKeyCallback(window, key_cb);
+	glfwSetFramebufferSizeCallback(window, fb_size_cb);
 	glfwSetMouseButtonCallback(window, mouse_button_cb);
+	glfwSetCursorPosCallback(window, mouse_move_cb);	
+	
+    glfwGetFramebufferSize(window, &width, &height);
+    fb_size_cb(window, width, height);
 
 	glfwSwapInterval(0);
 
@@ -218,7 +222,7 @@ int main()
 			}
 		}
 
-		arrayBuilder(vaoBuildID,
+		array_builder(vaoBuildID,
 					 ripple_program,
 					 BufferInitialiser<Vec3>{"vVertex", ripple_positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
 					 BufferInitialiser<Vec<GLushort, 1>>{"", ripple_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
@@ -233,14 +237,7 @@ int main()
 			glfwPollEvents();
 
 			glfwGetCursorPos(window, &mx, &my);
-			glfwGetWindowSize(window, &winWidth, &winHeight);
-			glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-			// Calculate pixel ration for hi-dpi devices.
-			pxRatio = (float)fbWidth / (float)winWidth;
-
-			// Update and render
-			gl_exec(glViewport, 0, 0, fbWidth, fbHeight);
-
+			
 			// Clear the colorbuffer
 			gl_exec(glClearColor, 0.2f, 0.3f, 0.3f, 1.0f);
 			gl_exec(glClear, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -270,17 +267,19 @@ int main()
 }
 
 // Is called whenever a key is pressed/released via GLFW
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
+void key_cb(GLFWwindow *window, int key, int scancode, int action, int mode)
 {
 	std::cout << key << std::endl;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-void fb_size_callback(GLFWwindow *window, int width, int height)
+void fb_size_cb(GLFWwindow *window, int fbwidth, int fbheight)
 {
+	width = fbwidth;
+	height = fbheight;
 	glViewport(0, 0, width, height);
-	P = Matrix4::perspective(3.14f / 4.0f, (GLfloat)width / height, 1.0f, 1000.0f);
+	P = Matrix4::perspective(3.14f / 4.0f, (GLfloat)width / (GLfloat)  height, 0.1f, 100.0f);
 }
 
 void error_cb(int error, const char *desc)

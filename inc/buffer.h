@@ -66,9 +66,19 @@ public:
 		gl_exec(glBindBuffer, mTarget, mBuffer);
 		gl_exec(glEnableVertexAttribArray, location);
 		gl_exec(glVertexAttribPointer, location, mComponentCount, mType, GL_FALSE, GLsizei(sizeof(component_type) * mComponentCount), nullptr);
-		gl_exec(glBindBuffer, mTarget, 0);
 	 }
 
+	void bindAttribute(GLint location)
+	 {
+		gl_exec(glBindBuffer, mTarget, mBuffer);
+		gl_exec(glEnableVertexAttribArray, location);
+		gl_exec(glVertexAttribPointer, location, mComponentCount, mType, GL_FALSE, GLsizei(sizeof(component_type) * mComponentCount), nullptr);
+	 }
+
+	void unbind()
+	{
+		gl_ext(glBindBuffer, mTarget, 0);
+	}
 
 	void bindIndices() 
 	{
