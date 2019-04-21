@@ -244,7 +244,7 @@ int main()
 
 			float vtime = glfwGetTime() / 1000.0f * SPEED;
 
-			Matrix4 MV = Matrix4::rotationY(rY) * Matrix4::rotationX(rX) * Matrix4::translation(Vector3(0.0f, 0.0f, camdist));
+			Transform3 MV =  Transform3::translation(Vector3(0.0f, 0.0f, camdist)) * Transform3::rotationX(rX) * Transform3::rotationY(rY);
 			Matrix4 MVP = P * MV;
 
 			ripple_program->use();
