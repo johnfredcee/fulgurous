@@ -1,4 +1,7 @@
 #pragma once
+#include <variant>
+
+using Callback = std::variant<GLFWerrorfun, GLFWframebuffersizefun, GLFWkeyfun, GLFWmousebuttonfun, GLFWcursorposfun>;
 
 struct Context
 {
@@ -79,6 +82,36 @@ struct Context
 			glfwTerminate();
 		}
 		glfwSwapInterval(0);
+	}
+	
+
+	// helper type for the visitor #4
+	template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+	template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+ 
+	void Context::setGLFWCallback(Callback callbackfn)
+	{
+		std::visit(overloaded {
+			[this](GLFWerrorfun fn) { glfwSetErrorCallback(fn); },
+			[this](GLFWframebuffersizefun fn) { glfwSetFramebufferSizeCallback(window, fn); }, 
+			[this](GLFWkeyfun fn) { glfwSetKeyCallback(window, fn); },
+			[this](GLFWmousebuttonfun fn) { glfwSetMouseButtonCallback(window, fn); }, 
+			[this](GLFWcursorposfun fn) { glfwSetCursorPosCallback(window, fn); },
+		}, callbackfn);
+	}
+
+	auto Context::getFrameBufferSize() const
+	{
+		int width, height;
+		glfwGetFramebufferSize(window, &width, &height);
+		return std::make_tuple(width, height);
+	}
+
+	auto Context::getCursorPos() const
+	{
+		double mx, my;
+		glfwGetCursorPos(window, &mx, &my);
+		return std::make_tuple(mx, my);
 	}
 
 	~Context()

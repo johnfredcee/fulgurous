@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iostream>
 #include <memory>
 #include <vector>
 #include <tuple>
@@ -58,7 +59,7 @@ struct ColouredVertex
 	Vector4 colour;
 };
 
-void drawWindow(NVGcontext *vg, const char *title, float x, float y, float w, float h)
+void drawNVGWindow(NVGcontext *vg, const char *title, float x, float y, float w, float h)
 {
 	float cornerRadius = 3.0f;
 
@@ -162,7 +163,7 @@ int main()
 
 			// nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
 
-			// drawWindow(vg, "Widgets `n Stuff", 50, 50, 300, 400);
+			// drawNVGWindow(vg, "Widgets `n Stuff", 50, 50, 300, 400);
 
 			// nvgEndFrame(vg);
 			std::shared_ptr<ShaderProgram> program(context.programs[0]);

@@ -6,4 +6,13 @@ vc140.pdb
 *.obj
 *.pdb
 *.exe
+*.ipch
+*.bin
+*.vcproj
+*.vcxproj
+*.filters
+*.rdc
+*.hdc
+*.sln
+*.cap
 site_scons/site_tools/__pycache__/glad.cpython-35.pyc

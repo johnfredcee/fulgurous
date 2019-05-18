@@ -44,6 +44,7 @@ using namespace Vectormath::Aos;
 #include "buffer.h"
 #include "bufferbuilder.h"
 #include "arraybuilder.h"
+#include "context.h"
 
 namespace ripple
 {
@@ -62,6 +63,9 @@ static constexpr float SPEED = 2;
 static constexpr int TOTAL_INDICES = NUM_X * NUM_Z * 2 * 3;
 
 } // namespace ripple
+
+GLuint Context::width = 800;
+GLuint Context::height = 600;
 
 // Function prototypes
 void key_cb(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -130,196 +134,184 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 
-	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow *window = glfwCreateWindow(WIDTH, HEIGHT, "Ripple", NULL, NULL);
-	glfwMakeContextCurrent(window);
-	if (window == NULL)
+	std::unique_ptr<Context> context = std::make_unique<Context>(WIDTH, HEIGHT, "Triangle");
 	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize OpenGL context" << std::endl;
-		return -1;
-	}
+		// Set the required callback functions
+		context->setGLFWCallback(key_cb);
+		context->setGLFWCallback(fb_size_cb);
+		context->setGLFWCallback(mouse_button_cb);
+		context->setGLFWCallback(mouse_move_cb);
 
-	// Set the required callback functions
-	glfwSetKeyCallback(window, key_cb);
-	glfwSetFramebufferSizeCallback(window, fb_size_cb);
-	glfwSetMouseButtonCallback(window, mouse_button_cb);
-	glfwSetCursorPosCallback(window, mouse_move_cb);	
 	
-    glfwGetFramebufferSize(window, &width, &height);
-    fb_size_cb(window, width, height);
+		glfwSwapInterval(0);
 
-	glfwSwapInterval(0);
-
-	{
-		std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
-		ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/ripple.vert");
-		ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/ripple.frag");
-		ripple_program->compile(ShaderKind::eVERTEX_SHADER);
-		ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
-		ripple_program->link();
-		ripple_program->use();
-
-		for (auto &&uniform : ripple_program->uniforms)
 		{
-			std::cout << "Uniform " << uniform.location << " : " << uniform.name << std::endl;
-		}
-
-		for (auto &&attribute : ripple_program->attributes)
-		{
-			std::cout << "Attribute " << attribute.location << " : " << attribute.name << std::endl;
-		}
-		ripple_program->unuse();
-
-		BufferBuilder<Vec3> ripple_positions;
-		BufferBuilder<Vec<GLushort, 1>> ripple_indices;
-
-		//setup plane geometry
-		//setup plane vertices
-		int count = 0;
-		int i = 0, j = 0;
-		for (j = 0; j <= NUM_Z; j++)
-		{
-			for (i = 0; i <= NUM_X; i++)
-			{
-				ripple_positions.emplace(((float(i) / (NUM_X - 1)) * 2 - 1) * HALF_SIZE_X, 0.0f, ((float(j) / (NUM_Z - 1)) * 2 - 1) * HALF_SIZE_Z);
-			}
-		}
-
-		//fill plane indices array
-		for (i = 0; i < NUM_Z; i++)
-		{
-			for (j = 0; j < NUM_X; j++)
-			{
-				int i0 = i * (NUM_X + 1) + j;
-				int i1 = i0 + 1;
-				int i2 = i0 + (NUM_X + 1);
-				int i3 = i2 + 1;
-				if ((j + i) % 2)
-				{
-					ripple_indices.emplace(i0);
-					ripple_indices.emplace(i2);
-					ripple_indices.emplace(i1);
-					ripple_indices.emplace(i1);
-					ripple_indices.emplace(i2);
-					ripple_indices.emplace(i3);
-				}
-				else
-				{
-					ripple_indices.emplace(i0);
-					ripple_indices.emplace(i2);
-					ripple_indices.emplace(i3);
-					ripple_indices.emplace(i0);
-					ripple_indices.emplace(i3);
-					ripple_indices.emplace(i1);
-				}
-			}
-		}
-
-		array_builder(vaoBuildID,
-					 ripple_program,
-					 BufferInitialiser<Vec3>{"vVertex", ripple_positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-					 BufferInitialiser<Vec<GLushort, 1>>{"", ripple_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
-
-		// Game loop
-		while (!glfwWindowShouldClose(window))
-		{
-			double mx, my, t, dt;
-			float pxRatio;
-
-			// Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
-			glfwPollEvents();
-
-			glfwGetCursorPos(window, &mx, &my);
-			
-			// Clear the colorbuffer
-			gl_exec(glClearColor, 0.2f, 0.3f, 0.3f, 1.0f);
-			gl_exec(glClear, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-			float vtime = glfwGetTime() / 1000.0f * SPEED;
-
-			Transform3 MV =  Transform3::translation(Vector3(0.0f, 0.0f, camdist)) * Transform3::rotationX(rX) * Transform3::rotationY(rY);
-			Matrix4 MVP = P * MV;
-
+			std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
+			ripple_program->load_from_file(ShaderKind::eVERTEX_SHADER, "./shaders/ripple.vert");
+			ripple_program->load_from_file(ShaderKind::eFRAGMENT_SHADER, "./shaders/ripple.frag");
+			ripple_program->compile(ShaderKind::eVERTEX_SHADER);
+			ripple_program->compile(ShaderKind::eFRAGMENT_SHADER);
+			ripple_program->link();
 			ripple_program->use();
-			gl_exec(glBindVertexArray, vaoBuildID);
-			GLint location = ripple_program->uniform_location("MVP");
-			auto mvp = glMat4(MVP);
-			gl_exec(glUniformMatrix4fv, location, 1, GL_FALSE, mvp.get());
-			location = ripple_program->uniform_location("time");
-			gl_exec(glUniform1f, location, vtime);
-			gl_exec(glDrawElements, GL_TRIANGLES, TOTAL_INDICES, GL_UNSIGNED_SHORT, nullptr);
-			gl_exec(glBindVertexArray, 0);
+
+			for (auto &&uniform : ripple_program->uniforms)
+			{
+				std::cout << "Uniform " << uniform.location << " : " << uniform.name << std::endl;
+			}
+
+			for (auto &&attribute : ripple_program->attributes)
+			{
+				std::cout << "Attribute " << attribute.location << " : " << attribute.name << std::endl;
+			}
 			ripple_program->unuse();
-			// Swap the screen buffers
-			glfwSwapBuffers(window);
+
+			BufferBuilder<Vec3> ripple_positions;
+			BufferBuilder<Vec<GLushort, 1>> ripple_indices;
+
+			//setup plane geometry
+			//setup plane vertices
+			int count = 0;
+			int i = 0, j = 0;
+			for (j = 0; j <= NUM_Z; j++)
+			{
+				for (i = 0; i <= NUM_X; i++)
+				{
+					ripple_positions.emplace(((float(i) / (NUM_X - 1)) * 2 - 1) * HALF_SIZE_X, 0.0f, ((float(j) / (NUM_Z - 1)) * 2 - 1) * HALF_SIZE_Z);
+				}
+			}
+
+			//fill plane indices array
+			for (i = 0; i < NUM_Z; i++)
+			{
+				for (j = 0; j < NUM_X; j++)
+				{
+					int i0 = i * (NUM_X + 1) + j;
+					int i1 = i0 + 1;
+					int i2 = i0 + (NUM_X + 1);
+					int i3 = i2 + 1;
+					if ((j + i) % 2)
+					{
+						ripple_indices.emplace(i0);
+						ripple_indices.emplace(i2);
+						ripple_indices.emplace(i1);
+						ripple_indices.emplace(i1);
+						ripple_indices.emplace(i2);
+						ripple_indices.emplace(i3);
+					}
+					else
+					{
+						ripple_indices.emplace(i0);
+						ripple_indices.emplace(i2);
+						ripple_indices.emplace(i3);
+						ripple_indices.emplace(i0);
+						ripple_indices.emplace(i3);
+						ripple_indices.emplace(i1);
+					}
+				}
+			}
+
+			array_builder(vaoBuildID,
+						  ripple_program,
+						  BufferInitialiser<Vec3>{"vVertex", ripple_positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
+						  BufferInitialiser<Vec<GLushort, 1>>{"", ripple_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
+
+			context->drawcb = [](const Context &context, float alpha) {
+				double t, dt;
+				float pxRatio;
+
+				// Check if any events have been activated (key pressed, mouse moved etc.) and call corresponding response functions
+				glfwPollEvents();
+
+				const auto [mx, my] = context.getCursorPos();
+
+				// Clear the colorbuffer
+				gl_exec(glClearColor, 0.2f, 0.3f, 0.3f, 1.0f);
+				gl_exec(glClear, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+				float vtime = glfwGetTime() / 1000.0f * SPEED;
+
+				Transform3 MV = Transform3::translation(Vector3(0.0f, 0.0f, camdist)) * Transform3::rotationX(rX) * Transform3::rotationY(rY);
+				Matrix4 MVP = P * MV;
+
+				std::shared_ptr<ShaderProgram> ripple_program(context.programs[0]);
+				ripple_program->use();
+				gl_exec(glBindVertexArray, vaoBuildID);
+				GLint location = ripple_program->uniform_location("MVP");
+				auto mvp = glMat4(MVP);
+				gl_exec(glUniformMatrix4fv, location, 1, GL_FALSE, mvp.get());
+				location = ripple_program->uniform_location("time");
+				gl_exec(glUniform1f, location, vtime);
+				gl_exec(glDrawElements, GL_TRIANGLES, TOTAL_INDICES, GL_UNSIGNED_SHORT, nullptr);
+				gl_exec(glBindVertexArray, 0);
+				ripple_program->unuse();
+			};
+
+			// Game loop
+			while (!context->done())
+			{
+				context->draw();
+			}
+		}
+		// Terminates GLFW, clearing any resources allocated by GLFW.
+		glfwTerminate();
+		return 0;
+	}
+}
+	// Is called whenever a key is pressed/released via GLFW
+	void key_cb(GLFWwindow * window, int key, int scancode, int action, int mode)
+	{
+		std::cout << key << std::endl;
+		if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+			glfwSetWindowShouldClose(window, GL_TRUE);
+	}
+
+	void fb_size_cb(GLFWwindow * window, int fbwidth, int fbheight)
+	{
+		width = fbwidth;
+		height = fbheight;
+		glViewport(0, 0, width, height);
+		P = Matrix4::perspective(3.14f / 4.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
+	}
+
+	void error_cb(int error, const char *desc)
+	{
+		std::cerr << "GLFW error " << error << desc << std::endl;
+	}
+
+	double mouseXPos, mouseYPos;
+
+	void mouse_button_cb(GLFWwindow * window, int button, int action, int mods)
+	{
+		if ((button = GLFW_MOUSE_BUTTON_LEFT) && (action == GLFW_PRESS))
+		{
+			oldX = mouseXPos;
+			oldY = mouseYPos;
+		}
+
+		if ((button = GLFW_MOUSE_BUTTON_RIGHT))
+		{
+			state = 0;
+		}
+		else
+		{
+			state = 1;
 		}
 	}
-	// Terminates GLFW, clearing any resources allocated by GLFW.
-	glfwTerminate();
-	return 0;
-}
 
-// Is called whenever a key is pressed/released via GLFW
-void key_cb(GLFWwindow *window, int key, int scancode, int action, int mode)
-{
-	std::cout << key << std::endl;
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
-}
-
-void fb_size_cb(GLFWwindow *window, int fbwidth, int fbheight)
-{
-	width = fbwidth;
-	height = fbheight;
-	glViewport(0, 0, width, height);
-	P = Matrix4::perspective(3.14f / 4.0f, (GLfloat)width / (GLfloat)  height, 0.1f, 100.0f);
-}
-
-void error_cb(int error, const char *desc)
-{
-	std::cerr << "GLFW error " << error << desc << std::endl;
-}
-
-double mouseXPos, mouseYPos;
-
-void mouse_button_cb(GLFWwindow *window, int button, int action, int mods)
-{
-	if ((button = GLFW_MOUSE_BUTTON_LEFT) && (action == GLFW_PRESS))
+	void mouse_move_cb(GLFWwindow * window, double xpos, double ypos)
 	{
-		oldX = mouseXPos;
-		oldY = mouseYPos;
+		mouseXPos = xpos;
+		mouseYPos = ypos;
+		if (state == 0)
+		{
+			camdist *= (1 + (ypos - oldY) / 60.0f);
+		}
+		else
+		{
+			rY += (xpos - oldX) / 5.0f;
+			rX += (ypos - oldY) / 5.0f;
+		}
+		oldX = xpos;
+		oldY = ypos;
 	}
-
-	if ((button = GLFW_MOUSE_BUTTON_RIGHT))
-	{
-		state = 0;
-	}
-	else
-	{
-		state = 1;
-	}
-}
-
-void mouse_move_cb(GLFWwindow *window, double xpos, double ypos)
-{
-	mouseXPos = xpos;
-	mouseYPos = ypos;
-	if (state == 0)
-	{
-		camdist *= (1 + (ypos - oldY) / 60.0f);
-	}
-	else
-	{
-		rY += (xpos - oldX) / 5.0f;
-		rX += (ypos - oldY) / 5.0f;
-	}
-	oldX = xpos;
-	oldY = ypos;
-}
