@@ -7,3 +7,4 @@ vc140.pdb
 *.pdb
 *.exe
 site_scons/site_tools/__pycache__/glad.cpython-35.pyc
+.vscode

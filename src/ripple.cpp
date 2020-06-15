@@ -68,6 +68,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 void error_cb(int error, const char *desc);
 void fb_size_callback(GLFWwindow *window, int width, int height);
 void mouse_button_cb(GLFWwindow *window, int button, int action, int mods);
+void mouse_move_cb(GLFWwindow *window, double xpos, double ypos)
 
 // Window dimensions
 static constexpr GLuint WIDTH = 800, HEIGHT = 600;
