@@ -136,7 +136,7 @@ int main()
 		BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
 		BufferBuilder<Vec<GLushort, 1>> indices = {{0}, {1}, {2}};
 
-		arrayBuilder(vaoBuildID,
+		array_builder(vaoBuildID,
 					 program,
 					 BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
 					 BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
@@ -182,6 +182,10 @@ int main()
 		{
 			context->draw();
 		}
+		program->unuse();
 	}
+	// Terminates GLFW, clearing any resources allocated by GLFW.
+	delete context.release();
+	glfwTerminate();
 	return 0;
 }
