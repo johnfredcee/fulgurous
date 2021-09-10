@@ -16,3 +16,8 @@ vc140.pdb
 *.sln
 *.cap
 site_scons/site_tools/__pycache__/glad.cpython-35.pyc
+.cache
+.vscode
+build
+.vscode
+fulgurous.code-workspace

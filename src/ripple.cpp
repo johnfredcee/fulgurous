@@ -104,6 +104,7 @@ std::shared_ptr<float[]> glMat4(const Matrix4 &mat4)
 
 using Vec4 = Vec<GLfloat, 4>;
 using Vec3 = Vec<GLfloat, 3>;
+using Index = Vec<GLushort, 1>;
 
 GLuint vaoBuildID;
 GLuint vboVerticesID;
@@ -121,20 +122,7 @@ using namespace ripple;
 int main()
 {
 
-	std::cout << "Starting GLFW corecontext, OpenGL 3.3" << std::endl;
-	// Init GLFW
-	glfwInit();
-
-	// Handle errors
-	glfwSetErrorCallback(error_cb);
-
-	// Set all the required options for GLFW
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-
-	std::unique_ptr<Context> context = std::make_unique<Context>(WIDTH, HEIGHT, "Triangle");
+	std::unique_ptr<Context> context = std::make_unique<Context>(WIDTH, HEIGHT, "Ripple", false);
 	{
 
 		// Set the required callback functions
@@ -142,9 +130,6 @@ int main()
 		context->setGLFWCallback(fb_size_cb);
 		context->setGLFWCallback(mouse_button_cb);
 		context->setGLFWCallback(mouse_move_cb);
-
-	
-		glfwSwapInterval(0);
 
 		{
 			std::shared_ptr<ShaderProgram> ripple_program(new ShaderProgram());
@@ -166,8 +151,8 @@ int main()
 			}
 			ripple_program->unuse();
 
-			BufferBuilder<Vec3> ripple_positions;
-			BufferBuilder<Vec<GLushort, 1>> ripple_indices;
+			BufferBuilder<Vec3>  ripple_positions;
+			BufferBuilder<Index> ripple_indices;
 
 			//setup plane geometry
 			//setup plane vertices
@@ -214,7 +199,7 @@ int main()
 			array_builder(vaoBuildID,
 						  ripple_program,
 						  BufferInitialiser<Vec3>{"vVertex", ripple_positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-						  BufferInitialiser<Vec<GLushort, 1>>{"", ripple_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
+						  BufferInitialiser<Index>{"", ripple_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
 
 			context->drawcb = [](const Context &context, float alpha) {
 				double t, dt;
@@ -253,6 +238,7 @@ int main()
 				context->draw();
 			}
 		}
+		context.release();
 		// Terminates GLFW, clearing any resources allocated by GLFW.
 		glfwTerminate();
 		return 0;

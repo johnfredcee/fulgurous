@@ -6,19 +6,23 @@ using Callback = std::variant<GLFWerrorfun, GLFWframebuffersizefun, GLFWkeyfun, 
 struct Context
 {
 
+
 	// Window dimensions
 	static GLuint width;
 	static GLuint height;
-	NVGcontext *vg;
-	GLFWerrorfun errorcb;
-	GLFWkeyfun keycb;
-	GLFWframebuffersizefun fbsizecn;
-	GLFWwindow *window;
-	typedef void (*updatefun)(const Context &context);
-	typedef void (*drawfun)(const Context &context, float alpha);
-	drawfun drawcb{[](const Context &context, float alpha) { return; }};
-	updatefun updatecb{[](const Context &context) { return; }};
+
+	// callbcak types
+	GLFWerrorfun 	        errorcb;
+	GLFWkeyfun 			    keycb;
+	GLFWframebuffersizefun  fbsizecb;
+
+	// shader programs
 	std::vector<std::shared_ptr<ShaderProgram>> programs;
+
+	// drawing contexts
+	NVGcontext *vg;
+	GLFWwindow *window;
+
 
 	static void default_error_cb(int error, const char *desc)
 	{
@@ -38,7 +42,28 @@ struct Context
 		glViewport(0, 0, width, height);
 	}
 
-	Context(GLuint width, GLuint height, const char *title)
+	// the "overload" pattern: https://www.bfilipek.com/2019/02/2lines3featuresoverload.html 
+	template <class... Ts>
+	struct overloaded : Ts...
+	{
+		using Ts::operator()...;
+	};
+	template <class... Ts>
+	overloaded(Ts...)->overloaded<Ts...>;
+
+	void setGLFWCallback(Callback callbackfn)
+	{
+		std::visit(overloaded{
+					   [this](GLFWerrorfun fn) { glfwSetErrorCallback(fn); },
+					   [this](GLFWframebuffersizefun fn) { glfwSetFramebufferSizeCallback(window, fn); },
+					   [this](GLFWkeyfun fn) { glfwSetKeyCallback(window, fn); },
+					   [this](GLFWmousebuttonfun fn) { glfwSetMouseButtonCallback(window, fn); },
+					   [this](GLFWcursorposfun fn) { glfwSetCursorPosCallback(window, fn); },
+				   },
+				   callbackfn);
+	}
+
+	Context(GLuint width, GLuint height, const char *title, bool resizable = false)
 	{
 		vg = nullptr;
 		this->width = width;
@@ -52,7 +77,7 @@ struct Context
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+		glfwWindowHint(GLFW_RESIZABLE, resizable ? GL_TRUE : GL_FALSE);
 
 		// Create a GLFWwindow object that we can use for GLFW's functions
 		window = glfwCreateWindow(width, height, title, nullptr, nullptr);
@@ -83,22 +108,7 @@ struct Context
 		}
 		glfwSwapInterval(0);
 	}
-	
 
-	// helper type for the visitor #4
-	template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-	template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
- 
-	void Context::setGLFWCallback(Callback callbackfn)
-	{
-		std::visit(overloaded {
-			[this](GLFWerrorfun fn) { glfwSetErrorCallback(fn); },
-			[this](GLFWframebuffersizefun fn) { glfwSetFramebufferSizeCallback(window, fn); }, 
-			[this](GLFWkeyfun fn) { glfwSetKeyCallback(window, fn); },
-			[this](GLFWmousebuttonfun fn) { glfwSetMouseButtonCallback(window, fn); }, 
-			[this](GLFWcursorposfun fn) { glfwSetCursorPosCallback(window, fn); },
-		}, callbackfn);
-	}
 
 	auto Context::getFrameBufferSize() const
 	{
@@ -113,6 +123,13 @@ struct Context
 		glfwGetCursorPos(window, &mx, &my);
 		return std::make_tuple(mx, my);
 	}
+
+	// context update functions
+	typedef void (*updatefun)(const Context &context);
+	typedef void (*drawfun)(const Context &context, float alpha);
+
+	drawfun drawcb{[](const Context &context, float alpha) { return; }};
+	updatefun updatecb{[](const Context &context) { return; }};
 
 	~Context()
 	{

@@ -50,7 +50,7 @@ void ShaderProgram::load_from_string(ShaderKind kind, const std::string& source)
 {
     GLuint glShaderConstants[ShaderKind::eSHADER_COUNT] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER };
     shaders[kind] = glCreateShader(glShaderConstants[kind]);
-    GLint source_length = source.size();
+    GLint source_length = (GLint) source.size();
     GLchar *source_text =  (GLchar*) source.c_str();
     gl_exec(glShaderSource, shaders[kind], 1, &source_text, &source_length);
     return;

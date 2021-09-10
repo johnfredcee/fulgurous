@@ -50,7 +50,6 @@ public:
 		mBuffer.emplace_back(std::forward<Args>(args)...);
 	}
 
-	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,3>>::value, element_type  >::type >
 	void add(Point3 point)
 	{
 		GLfloat v3[3];
@@ -58,7 +57,6 @@ public:
 		mBuffer.push_back(v3);
 	}
 
-	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,3>>::value, element_type  >::type >
 	void add(Vector3& vec)
 	{
 		GLfloat v3[3];
@@ -66,7 +64,6 @@ public:
 		mBuffer.push_back(v3);
 	}
 
-	template< typename V = typename std::enable_if_t< std::is_same<element_type, Vec<GLfloat,4>>::value, element_type  >::type >
 	void add(Vector4& vec)
 	{
 		GLfloat v4[4];

@@ -106,7 +106,6 @@ Matrix4 model_view = Matrix4::identity();
 
 int ghing = GL_FLOAT;
 
-// The MAIN function, from here we start the application and run the game loop
 int main()
 {
 	std::unique_ptr<Context> context = std::make_unique<Context>(800, 600, "Triangle");
@@ -132,6 +131,7 @@ int main()
 		context->programs.push_back(program);
 		using Vec4 = Vec<GLfloat, 4>;
 		using Vec3 = Vec<GLfloat, 3>;
+		using Index = Vec<GLushort, 1>;
 
 		BufferBuilder<Vec3> positions = {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
 		BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
@@ -141,7 +141,7 @@ int main()
 					 program,
 					 BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
 					 BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-					 BufferInitialiser<Vec<GLushort, 1>>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
+					 BufferInitialiser<Index>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
 
 		context->drawcb = [](const Context &context, float alpha) {
 			double mx, my, t, dt;
@@ -160,10 +160,6 @@ int main()
 			// Clear the colorbuffer
 			gl_exec(glClearColor, 0.2f, 0.3f, 0.3f, 1.0f);
 			gl_exec(glClear, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-			// nvgBeginFrame(vg, winWidth, winHeight, pxRatio);
-
-			// drawNVGWindow(vg, "Widgets `n Stuff", 50, 50, 300, 400);
 
 			// nvgEndFrame(vg);
 			std::shared_ptr<ShaderProgram> program(context.programs[0]);
