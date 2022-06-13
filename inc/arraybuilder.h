@@ -1,13 +1,19 @@
 
 #pragma once
 
+/**
+ * API for building vertex array objects
+ */
+
 // GLAD
-//#include <glad/glad.h>
 
 #include <tuple>
 #include <vector>
 #include <string>
+#include "buffer.h"
 #include "bufferbuilder.h"
+#include "shader.h"
+#include "shaderprogram.h"
 #include "drawcall.h"
 
 template <typename T>

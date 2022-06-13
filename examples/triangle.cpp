@@ -37,17 +37,17 @@ using namespace Vectormath::Aos;
 #include "filesystem/path.h"
 #include "filesystem/resolver.h"
 
+#include <vec.h>
+#include <gl_funcalls.h>
+#include <gl_typetraits.h>
+#include <shader.h>
+#include <shaderprogram.h>
 #include "arraybuilder.h"
 #include "buffer.h"
 #include "bufferbuilder.h"
 #include "context.h"
 #include "drawcall.h"
 #include "framebuffer.h"
-#include "gl_funcalls.h"
-#include "gl_typetraits.h"
-#include "shader.h"
-#include "shaderprogram.h"
-#include "vec.h"
 #include "vertexdata.h"
 
 GLuint Context::width = 800;
@@ -145,7 +145,7 @@ int main()
 
 		context->drawcb = [](const Context &context, float alpha)
 		{
-			double mx, my, t, dt;
+			double mx, my;
 			int winWidth, winHeight;
 			int fbWidth, fbHeight;
 			float pxRatio;

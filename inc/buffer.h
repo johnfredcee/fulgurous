@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * API for binding an opengl buffer
+ */
+
 template <typename T>
 class Buffer {
 public:
