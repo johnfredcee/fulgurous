@@ -133,15 +133,17 @@ int main()
 		using Vec3 = Vec<GLfloat, 3>;
 		using Index = Vec<GLushort, 1>;
 
+		/* Buiid buffers */
 		BufferBuilder<Vec3> positions = {{-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}};
 		BufferBuilder<Vec4> colors = {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f}};
-		BufferBuilder<Vec<GLushort, 1>> indices = {{0}, {1}, {2}};
+		BufferBuilder<Index> indices = {{0}, {1}, {2}};
 
+		/* Assign buffers to vao */
 		array_builder(vaoBuildID,
 					  program,
 					  BufferInitialiser<Vec3>{"vVertex", positions, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
 					  BufferInitialiser<Vec4>{"vColor", colors, GL_ARRAY_BUFFER, GL_STATIC_DRAW},
-					  BufferInitialiser<Index>{"", indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
+					  IndexBufferInitialiser<Index>{indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW});
 
 		context->drawcb = [](const Context &context, float alpha)
 		{
