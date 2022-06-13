@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-project(Fulgurous)
+project(fulgurous)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -16,13 +16,19 @@ message(STATUS "CMAKE_SYSTEM = ${CMAKE_SYSTEM}")
 message(STATUS "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 message(STATUS "CMAKE_BINARY_DIR = ${CMAKE_BINARY_DIR}")
 
+file(GLOB PROJECT_SOURCES src/*.cpp)
+file(GLOB PROJECT_HEADERS src/*.h)
 
+source_group("Headers" FILES ${PROJECT_HEADERS})
+source_group("Sources" FILES ${PROJECT_SOURCES})
 
-add_executable(triangle "src/triangle.cpp" "src/utils.cpp" "src/shader.cpp" "glad/src/glad.c" "nanovg/src/nanovg.c" )
-add_executable(ripple "src/triangle.cpp" "src/utils.cpp" "src/shader.cpp" "glad/src/glad.c" "nanovg/src/nanovg.c" )
+add_library(fulgurous STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
+
+add_executable(triangle "examples/triangle.cpp" "glad/src/glad.c" "nanovg/src/nanovg.c" )
+add_executable(ripple "examples/ripple.cpp" "glad/src/glad.c" "nanovg/src/nanovg.c" )
 add_definitions(-D_CRT_SECURE_NO_WARNINGS
                 -DPROJECT_SOURCE_DIR=\"${PROJECT_SOURCE_DIR}\")
 add_subdirectory(glfw)
-include_directories("inc" "filesystem" "glad/include" "glfw/include" "stb" "nanovg/src" "sce_vectormath/include/vectormath/scalar/cpp")
-target_link_libraries(triangle glfw)
-target_link_libraries(ripple glfw)
+include_directories("${PROJECT_SOURCE_DIR}/inc" "filesystem" "glad/include" "glfw/include" "stb" "nanovg/src" "sce_vectormath/include/vectormath/scalar/cpp")
+target_link_libraries(triangle PRIVATE glfw fulgurous)
+target_link_libraries(ripple PRIVATE glfw fulgurous)
