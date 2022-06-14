@@ -6,7 +6,7 @@
 #include <memory>
 #include <ios>
 #include <fstream>
-
+#include <filesystem>
 
 using ios = std::ios;
 
@@ -23,7 +23,7 @@ std::streamoff file_length(std::ifstream &file)
     return len;
 }
 
-std::shared_ptr<GLchar[]> load_shader(const std::string& filename)
+std::shared_ptr<GLchar[]> load_shader(const std::filesystem::path& filename)
 {
     std::shared_ptr<GLchar[]> result;
     std::ifstream file;

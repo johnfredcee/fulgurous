@@ -34,8 +34,7 @@
 using namespace Vectormath;
 using namespace Vectormath::Aos;
 
-#include "filesystem/path.h"
-#include "filesystem/resolver.h"
+#include <filesystem>
 
 #include <vec.h>
 #include <gl_funcalls.h>

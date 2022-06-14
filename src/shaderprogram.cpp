@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <filesystem/path.h>
+#include <filesystem>
 #include <utils.h>
 #include <gl_funcalls.h>
 #include <shader.h>

@@ -6,7 +6,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include <filesystem/path.h>
+#include <filesystem>
 #include <utils.h>
 #include <gl_funcalls.h>
 #include "shader.h"
@@ -19,9 +19,9 @@ Shader::~Shader()
 {
 }
 
-void Shader::load_from_file(const std::string &filename)
+void Shader::load_from_file(const std::filesystem::path &filename)
 {
-    std::shared_ptr<GLchar[]> source = load_shader(filename.c_str());
+    std::shared_ptr<GLchar[]> source = load_shader(filename);
     load_from_string(source.get());
 }
 

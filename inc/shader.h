@@ -14,8 +14,8 @@ class Shader
 public:
     Shader(ShaderKind inKind);
     ~Shader();
+    void load_from_file(const std::filesystem::path& filename);
     void load_from_string(const std::string& filename);
-    void load_from_file(const std::string& filename);
     void compile();
     bool verify();
 protected:
